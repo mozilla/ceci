@@ -87,6 +87,8 @@ Ceci.register = function (element) {
                               listenElement.getAttribute('on'),
                               listenElement.getAttribute('send'));
     });
+
+    existingElement.init && existingElement.init();
   });
 };
 
@@ -123,7 +125,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
       init: function () {
         var that = this;
         this.querySelector('button').onclick = function (e) {
-          that.emit('value', this.querySelector('text').value);
+          that.emit('value', that.querySelector('input[type="text"]').value);
         };
       },
       editable: {
@@ -134,9 +136,8 @@ document.addEventListener('DOMContentLoaded', function (e) {
   </script>
 </element>
 
-<app-block id="app-block-1">blarg</app-block>
-<app-block id="app-block-2">
-  <listen to="#app-block-1" on="text" send="text">
+<app-block id="app-block-1">
+  <listen to="#value-thinger-1" on="value" send="text">
 </app-block>
-<app-value-thinger>Change!</app-value-thinger>
+<app-value-thinger id="value-thinger-1">Change!</app-value-thinger>
 </html>
