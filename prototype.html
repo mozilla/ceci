@@ -39,6 +39,7 @@
       },
       editable: {
         value: function (val) {
+          this.querySelector('input[type="text"]').value = val;
         }
       }
     });
@@ -57,7 +58,6 @@
     tick: function() {
       this.count++;
       this.emit('ding', this.count);
-      console.log(this.count);
 
       var t = this;
       var defer = function(){
@@ -70,6 +70,7 @@
         // errors?
         val = parseInt(val);
         this.setAttribute('period', val);
+        this.emit('period', val);
       }
     }
   });
@@ -88,6 +89,8 @@
 
 <app-timer id="timer">
   <avast to="#app-block-2" my="ding" be="text">
+  <avast to="#value-thinger-2" my="ding" be="value">
+  <avast to="#timer" my="ding" be="period"/>
 </app-timer>
 
 <app-value-thinger id="value-thinger-1">
@@ -96,9 +99,15 @@
 </app-value-thinger>
 
 <br>
+
 <app-value-thinger id="value-thinger-2">
   Change timer period
   <avast to="#timer" my="value" be="period">
+  <avast to="#timer_period" my="value" be="text">
 </app-value-thinger>
+
+<br>
+Current Timer Period: <app-block id="timer_period">
+</app-block>
 
 </html>

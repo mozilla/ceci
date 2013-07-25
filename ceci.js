@@ -2,13 +2,13 @@
   
 window['\u00E7'.toUpperCase()] = window.Ceci = function (element, def) {
 
-  function parseListenElement (listenElement) {
-    var toElement = document.querySelector(listenElement.getAttribute('to'));
-    var onType = listenElement.getAttribute('on');
-    var sendType = listenElement.getAttribute('send');
+  function parseAvastElement (avastElement) {
+    var toElement = document.querySelector(avastElement.getAttribute('to'));
+    var myType = avastElement.getAttribute('my');
+    var beType = avastElement.getAttribute('be');
     if (toElement) {
-      toElement.addEventListener('app-' + onType, function (e) {
-        element[sendType] = e.data || e.detail;
+      element.addEventListener('app-' + myType, function (e) {
+        toElement[beType] = e.data || e.detail;
       }, false);
     }
   }
@@ -55,12 +55,12 @@ window['\u00E7'.toUpperCase()] = window.Ceci = function (element, def) {
       element.dispatchEvent(customEvent);
     };
 
-    element.listen = function (to, on, send) {
-      var listenElement = document.createElement('listen');
-      listenElement.setAttribute('to', to);
-      listenElement.setAttribute('on', on);
-      listenElement.setAttribute('send', send);
-      parseListenElement(listenElement);
+    element.avast = function (to, my, be) {
+      var avastElement = document.createElement('avast');
+      avastElement.setAttribute('to', to);
+      avastElement.setAttribute('my', my);
+      avastElement.setAttribute('be', be);
+      parseAvastElement(avastElement);
     };
 
     element.init = function() {
@@ -83,7 +83,7 @@ Ceci.register = function (element) {
 
   var existingElements = document.querySelectorAll(element.getAttribute('name'));
   Array.prototype.forEach.call(existingElements, function (existingElement) {
-    var listenElements = existingElement.querySelectorAll('listen');
+    var broadcastElements = existingElement.querySelectorAll('avast');
 
     existingElement._innerHTML = existingElement.innerHTML;
 
@@ -93,10 +93,10 @@ Ceci.register = function (element) {
 
     func.call(existingElement);
 
-    Array.prototype.forEach.call(listenElements, function (listenElement) {
-      existingElement.listen( listenElement.getAttribute('to'),
-                              listenElement.getAttribute('on'),
-                              listenElement.getAttribute('send'));
+    Array.prototype.forEach.call(broadcastElements, function (broadcastElement) {
+      existingElement.avast( broadcastElement.getAttribute('to'),
+                             broadcastElement.getAttribute('my'),
+                             broadcastElement.getAttribute('be'));
     });
 
     existingElement.init && existingElement.init();
