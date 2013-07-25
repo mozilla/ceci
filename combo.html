@@ -1,0 +1,42 @@
+<html>
+<head>
+  <meta charset="utf-8">
+</head>
+
+<script type="text/javascript" src="http://code.jquery.com/jquery-latest.min.js"></script>
+
+<script src="ceci-combo.js"></script>
+
+<!-- After this be the use of the components -->
+
+
+<app-block id="app-block-1">
+</app-block>
+
+<app-block id="app-block-2">
+</app-block>
+
+<app-timer id="timer">
+  <avast to="#app-block-2" my="ding" be="text">
+  <avast to="#value-thinger-2" my="ding" be="value">
+  <avast to="#timer" my="ding" be="period"/>
+</app-timer>
+
+<app-value-thinger id="value-thinger-1">
+  Change!
+  <avast to="#app-block-1" my="value" be="text">
+</app-value-thinger>
+
+<br>
+
+<app-value-thinger id="value-thinger-2">
+  Change timer period
+  <avast to="#timer" my="value" be="period">
+  <avast to="#timer_period" my="value" be="text">
+</app-value-thinger>
+
+<br>
+Current Timer Period: <app-block id="timer_period">
+</app-block>
+
+</html>
