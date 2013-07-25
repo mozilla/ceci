@@ -73,7 +73,10 @@ Ceci.register = function (element) {
     var listenElements = existingElement.querySelectorAll('listen');
 
     existingElement._innerHTML = existingElement.innerHTML;
-    existingElement.innerHTML = template.innerHTML;
+
+    if (template){
+      existingElement.innerHTML = template.innerHTML;
+    }
 
     func.call(existingElement);
 
