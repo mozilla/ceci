@@ -13,13 +13,9 @@ window['\u00E7'.toUpperCase()] = window.Ceci = function (element, def) {
     }
   }
 
-  //FIXME: This is jQuery-dependent. @secretrobotron, remove this hideous mess.
-  var functions = jQuery.extend({}, def);
+  var reserved = ['init', 'editable'];
 
-  delete functions['init'];
-  delete functions['editable'];
-
-  Object.keys(functions).forEach(function (key) {
+  Object.keys(def).filter(function (item) { return reserved.indexOf(item) === -1; }).forEach(function (key) {
     var entry = def[key];
     if (typeof entry === 'function') {
       element[key] = entry;
