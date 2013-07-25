@@ -115,9 +115,8 @@ Ceci.avoir = function (element) {
   });
 };
 
-// Register all <element> tags with Ceçi
-document.addEventListener('DOMContentLoaded', function (e) {
+Ceci.commencer = function () {
   Array.prototype.slice.call(document.querySelectorAll('element')).forEach(Ceci.avoir);
-}, false);
+};
 
 })();
