@@ -44,31 +44,58 @@ window['\u00E7'.toUpperCase()] = window.Ceci = function (element, def) {
         get: entry.get
       });
     }
+  });
 
-    element.emit = function (type, data) {
-      var customEvent = document.createEvent('CustomEvent');
-      customEvent.initCustomEvent('app-' + type, false, false, data);
-      element.dispatchEvent(customEvent);
-    };
+  element.emit = function (type, data) {
+    var customEvent = document.createEvent('CustomEvent');
+    customEvent.initCustomEvent('app-' + type, false, false, data);
+    element.dispatchEvent(customEvent);
+  };
 
-    element.avast = function (to, my, be) {
-      var avastElement = document.createElement('avast');
-      avastElement.setAttribute('to', to);
-      avastElement.setAttribute('my', my);
-      avastElement.setAttribute('be', be);
-      parseAvastElement(avastElement);
-    };
+  element.avast = function (to, my, be) {
+    var avastElement = document.createElement('avast');
+    avastElement.setAttribute('to', to);
+    avastElement.setAttribute('my', my);
+    avastElement.setAttribute('be', be);
+    parseAvastElement(avastElement);
+  };
 
-    element.init = function() {
+  element.init = function() {
+    if (def.init) {
       def.init.call(element);
     }
-  });
+  };
 };
 
-Ceci.register = function (element) {
+Ceci._components = {};
+
+Ceci.faire = function (element) {
+  var def = Ceci._components[element.localName];
+
+  var avastElements = element.querySelectorAll('avast');
+
+  element._innerHTML = element.innerHTML;
+
+  if (def.template){
+    element.innerHTML = def.template.innerHTML;
+  }
+
+  def.contructor.call(element);
+
+  Array.prototype.forEach.call(avastElements, function (avastElement) {
+    element.avast( avastElement.getAttribute('to'),
+                           avastElement.getAttribute('my'),
+                           avastElement.getAttribute('be'));
+  });
+
+  element.init();
+};
+
+Ceci.avoir = function (element) {
+  var name = element.getAttribute('name');
   var template = element.querySelector('template');
   var script = element.querySelector('script[type="text/ceci"]');
-  var func = new Function(script.innerHTML);
+  var contructor = new Function(script.innerHTML);
 
   // [ window.HTMLElement.prototype,
   //   window.HTMLDivElement.prototype,
@@ -77,31 +104,20 @@ Ceci.register = function (element) {
   //     prototype.__insertBefore = prototype.insertBefore;
   //   });
 
-  var existingElements = document.querySelectorAll(element.getAttribute('name'));
+  Ceci._components[name] = {
+    template: template,
+    contructor: contructor,
+  };
+
+  var existingElements = document.querySelectorAll(name);
   Array.prototype.forEach.call(existingElements, function (existingElement) {
-    var broadcastElements = existingElement.querySelectorAll('avast');
-
-    existingElement._innerHTML = existingElement.innerHTML;
-
-    if (template){
-      existingElement.innerHTML = template.innerHTML;
-    }
-
-    func.call(existingElement);
-
-    Array.prototype.forEach.call(broadcastElements, function (broadcastElement) {
-      existingElement.avast( broadcastElement.getAttribute('to'),
-                             broadcastElement.getAttribute('my'),
-                             broadcastElement.getAttribute('be'));
-    });
-
-    existingElement.init && existingElement.init();
+    Ceci.faire(existingElement);
   });
 };
 
 // Register all <element> tags with Ceçi
 document.addEventListener('DOMContentLoaded', function (e) {
-  Array.prototype.slice.call(document.querySelectorAll('element')).forEach(Ceci.register);
+  Array.prototype.slice.call(document.querySelectorAll('element')).forEach(Ceci.avoir);
 }, false);
 
 })();
