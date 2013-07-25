@@ -38,15 +38,60 @@
         };
       },
       editable: {
-        text: function (val) {
+        value: function (val) {
         }
       }
     });
   </script>
 </element>
 
+
+<element name="app-timer">
+<script type="text/ceci">
+  Ceci(this, {
+    init: function() {
+      this.period = 1000;
+      this.count = 0;
+      this.tick();
+    },
+    tick: function() {
+      this.count++;
+      this.emit('ding', this.count);
+      console.log(this.count);
+
+      var t = this;
+      var defer = function(){
+        t.tick();
+      };
+      setTimeout(defer, this.period);
+    },
+    editable: {
+      period: function (val) {
+        // errors?
+        val = parseInt(val);
+        this.setAttribute('period', val);
+      }
+    }
+  });
+</script>
+</element>
+
+
+<!-- After this be the use of the components -->
+
+
 <app-block id="app-block-1">
   <listen to="#value-thinger-1" on="value" send="text">
 </app-block>
+
+<app-block id="app-block-2">
+  <listen to="#timer" on="ding" send="text">
+</app-block>
+
+<app-timer id="timer">
+</app-timer>
+
 <app-value-thinger id="value-thinger-1">Change!</app-value-thinger>
+<app-value-thinger id="value-thinger-2">Change time!</app-value-thinger>
+
 </html>
