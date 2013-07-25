@@ -81,17 +81,24 @@
 
 
 <app-block id="app-block-1">
-  <listen to="#value-thinger-1" on="value" send="text">
 </app-block>
 
 <app-block id="app-block-2">
-  <listen to="#timer" on="ding" send="text">
 </app-block>
 
 <app-timer id="timer">
+  <avast to="#app-block-2" my="ding" be="text">
 </app-timer>
 
-<app-value-thinger id="value-thinger-1">Change!</app-value-thinger>
-<app-value-thinger id="value-thinger-2">Change time!</app-value-thinger>
+<app-value-thinger id="value-thinger-1">
+  Change!
+  <avast to="#app-block-1" my="value" be="text">
+</app-value-thinger>
+
+<br>
+<app-value-thinger id="value-thinger-2">
+  Change timer period
+  <avast to="#timer" my="value" be="period">
+</app-value-thinger>
 
 </html>
