@@ -116,7 +116,40 @@ Ceci.avoir = function (element) {
 };
 
 Ceci.commencer = function () {
-  Array.prototype.slice.call(document.querySelectorAll('element')).forEach(Ceci.avoir);
+  function scrape () {
+    Array.prototype.slice.call(document.querySelectorAll('element')).forEach(Ceci.avoir);
+  }
+
+  var ceciScripts = document.querySelectorAll('script[data-ceci-components]');
+
+  if (ceciScripts.length) {
+    var scriptsLeft = ceciScripts.length;
+    Array.prototype.forEach.call(ceciScripts, function (ceciScript) {
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', ceciScript.getAttribute('data-ceci-components') ,true);
+      xhr.onload = function (e) {
+        var fragment = document.createElement('div');
+        fragment.innerHTML = xhr.response;
+        if (document.body.firstChild) {
+          document.body.insertBefore(fragment, document.body.firstChild);
+        }
+        else {
+          document.body.appendChild(fragment); 
+        }
+        if (--scriptsLeft === 0) {
+          scrape();
+        }
+      };
+      xhr.send(null);
+    });
+  }
+  else {
+    scrape();
+  }
 };
+
+document.addEventListener('DOMContentLoaded', function (e) {
+  Ceci.commencer();
+}, false);
 
 })();

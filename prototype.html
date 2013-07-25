@@ -5,78 +5,7 @@
 
 <script type="text/javascript" src="http://code.jquery.com/jquery-latest.min.js"></script>
 
-<script src="ceci.js"></script>
-
-<element name="app-block">
-  <template>
-    <div>Default Text</div>
-  </template>
-  <script type="text/ceci">
-    Ceci(this, {
-      init: function () {
-      },
-      editable: {
-        text: function (val) {
-          this.querySelector('div').innerHTML = val;
-          this.emit('text', val);
-        }
-      }
-    });
-  </script>
-</element>
-
-<element name="app-value-thinger">
-  <template>
-    <input type="text"><button>Submit</button>
-  </template>
-  <script type="text/ceci">
-    Ceci(this, {
-      init: function () {
-        var that = this;
-        this.querySelector('button').onclick = function (e) {
-          that.emit('value', that.querySelector('input[type="text"]').value);
-        };
-      },
-      editable: {
-        value: function (val) {
-          this.querySelector('input[type="text"]').value = val;
-        }
-      }
-    });
-  </script>
-</element>
-
-
-<element name="app-timer">
-<script type="text/ceci">
-  Ceci(this, {
-    init: function() {
-      this.period = 1000;
-      this.count = 0;
-      this.tick();
-    },
-    tick: function() {
-      this.count++;
-      this.emit('ding', this.count);
-
-      var t = this;
-      var defer = function(){
-        t.tick();
-      };
-      setTimeout(defer, this.period);
-    },
-    editable: {
-      period: function (val) {
-        // errors?
-        val = parseInt(val);
-        this.setAttribute('period', val);
-        this.emit('period', val);
-      }
-    }
-  });
-</script>
-</element>
-
+<script src="ceci.js" data-ceci-components="components.html"></script>
 
 <!-- After this be the use of the components -->
 
@@ -109,11 +38,5 @@
 <br>
 Current Timer Period: <app-block id="timer_period">
 </app-block>
-
-<script>
-document.addEventListener('DOMContentLoaded', function (e) {
-  Ceci.commencer();
-}, false);
-</script>
 
 </html>
