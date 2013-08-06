@@ -118,7 +118,7 @@ define(function() {
       elements.forEach(Ceci.avoir);
     }
 
-    var ceciLinks = document.querySelectorAll('link[rel=component]');
+    var ceciLinks = document.querySelectorAll('link[rel=component][type="text/ceci"]');
 
     if (ceciLinks.length) {
       var linksLeft = ceciLinks.length;
