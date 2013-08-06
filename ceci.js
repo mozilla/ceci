@@ -97,10 +97,8 @@ define(function() {
     var name = element.getAttribute('name');
     var template = element.querySelector('template');
     var script = element.querySelector('script[type="text/ceci"]');
-
-    var cGenerator = new Function("Ceci", "return function() {" + script.innerHTML+ "}");
-
-    var contructor = cGenerator(Ceci);
+    var generator = new Function("Ceci", "return function() {" + script.innerHTML+ "}");
+    var contructor = generator(Ceci);
 
     Ceci._components[name] = {
       template: template,
