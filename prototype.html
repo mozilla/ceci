@@ -3,7 +3,16 @@
   <meta charset="utf-8">
 </head>
 
-<script src="ceci.js" data-ceci-components="components.html"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/require.js/2.1.8/require.min.js"></script>
+<link rel="component" type="text/ceci" href="components.html">
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+	require(["ceci"], function(Ceci) {
+	  console.log("commencing");
+	  Ceci.commencer();
+	});
+  });
+</script>
 
 <!-- After this be the use of the components -->
 

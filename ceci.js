@@ -1,4 +1,4 @@
-define(function(){
+define(function() {
   var Ceci = function (element, def) {
 
     var reserved = ['init', 'editable'];
@@ -45,7 +45,7 @@ define(function(){
       avastElement.setAttribute('to', to);
       avastElement.setAttribute('my', my);
       avastElement.setAttribute('be', be);
-      parseAvastElement(avastElement);
+      Ceci.parseAvastElement(avastElement);
     };
 
     element.init = function() {
@@ -54,7 +54,7 @@ define(function(){
       }
     };
   }
-  
+
   Ceci.reserved = ['init', 'editable'];
 
   Ceci.parseAvastElement = function (avastElement) {
@@ -62,7 +62,7 @@ define(function(){
       var myType = avastElement.getAttribute('my');
       var beType = avastElement.getAttribute('be');
       if (toElement) {
-        element.addEventListener('app-' + myType, function (e) {
+        toElement.addEventListener('app-' + myType, function (e) {
           toElement[beType] = e.data || e.detail;
         }, false);
       }
@@ -97,7 +97,10 @@ define(function(){
     var name = element.getAttribute('name');
     var template = element.querySelector('template');
     var script = element.querySelector('script[type="text/ceci"]');
-    var contructor = new Function(script.innerHTML);
+
+    var cGenerator = new Function("Ceci", "return function() {" + script.innerHTML+ "}");
+
+    var contructor = cGenerator(Ceci);
 
     Ceci._components[name] = {
       template: template,
@@ -112,16 +115,19 @@ define(function(){
 
   Ceci.commencer = function (callback) {
     function scrape () {
-      Array.prototype.slice.call(document.querySelectorAll('element')).forEach(Ceci.avoir);
+      var elements = document.querySelectorAll('element');
+      elements = Array.prototype.slice.call(elements);
+      elements.forEach(Ceci.avoir);
     }
 
-    var ceciScripts = document.querySelectorAll('script[data-ceci-components]');
+    var ceciLinks = document.querySelectorAll('link[rel=component]');
 
-    if (ceciScripts.length) {
-      var scriptsLeft = ceciScripts.length;
-      Array.prototype.forEach.call(ceciScripts, function (ceciScript) {
-        var xhr = new XMLHttpRequest();
-        xhr.open('GET', ceciScript.getAttribute('data-ceci-components') ,true);
+    if (ceciLinks.length) {
+      var linksLeft = ceciLinks.length;
+      Array.prototype.forEach.call(ceciLinks, function (componentLink) {
+        var xhr = new XMLHttpRequest(),
+            docURL = componentLink.getAttribute('href');
+        xhr.open('GET', docURL ,true);
         xhr.onload = function (e) {
           var fragment = document.createElement('div');
           fragment.innerHTML = xhr.response;
@@ -129,9 +135,9 @@ define(function(){
             document.body.insertBefore(fragment, document.body.firstChild);
           }
           else {
-            document.body.appendChild(fragment); 
+            document.body.appendChild(fragment);
           }
-          if (--scriptsLeft === 0) {
+          if (--linksLeft === 0) {
             scrape();
             if (callback){
               callback();
@@ -145,6 +151,6 @@ define(function(){
       scrape();
     }
   };
-  
-  return Ceci
+
+  return Ceci;
 });
