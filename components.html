@@ -7,61 +7,47 @@
       init: function () {
       },
       editable: {
-        text: function (val) {
+        input: function (val, channel) {
           this.querySelector('div').innerHTML = val;
-          this.emit('text', val);
         }
       }
     });
   </script>
 </element>
 
-<element name="app-submit">
-  <template>
-    <input type="text"><button>Submit</button>
-  </template>
+<element name="app-prism">
+  <template></template>
   <script type="text/ceci">
     Ceci(this, {
       init: function () {
-        var that = this;
-        this.querySelector('button').onclick = function (e) {
-          that.emit('value', that.querySelector('input[type="text"]').value);
-        };
+        this.values = {};
       },
       editable: {
-        value: function (val) {
-          this.querySelector('input[type="text"]').value = val;
+        input: function (val, channel) {
+          this.emit(val);
         }
       }
     });
   </script>
 </element>
-
 
 <element name="app-timer">
   <script type="text/ceci">
     Ceci(this, {
       init: function() {
-        this.period = 1000;
+        this.period = parseFloat(this.getAttribute("clockrate"))*1000;
         this.count = 0;
         this.tick();
       },
       tick: function() {
         this.count++;
-        this.emit('ding', this.count);
-
+        this.emit(this.count);
         var t = this;
-        var defer = function(){
-          t.tick();
-        };
-        setTimeout(defer, this.period);
+        setTimeout(function() { t.tick(); }, this.period);
       },
       editable: {
-        period: function (val) {
-          // errors?
-          val = parseInt(val);
-          this.setAttribute('period', val);
-          this.emit('period', val);
+        input: function (val, channel) {
+          // should a timer do anything on input?
         }
       }
     });
