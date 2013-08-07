@@ -1,9 +1,16 @@
 define(function() {
+
+  var getChannel = function(name) {
+    return "flathead:" + name;
+  }
+
   var Ceci = function (element, def) {
 
     var reserved = ['init', 'editable'];
 
-    Object.keys(def).filter(function (item) { return reserved.indexOf(item) === -1; }).forEach(function (key) {
+    Object.keys(def).filter(function (item) {
+      return reserved.indexOf(item) === -1;
+    }).forEach(function (key) {
       var entry = def[key];
       if (typeof entry === 'function') {
         element[key] = entry;
@@ -18,8 +25,8 @@ define(function() {
       if (entryType === 'function') {
         Object.defineProperty(element, key, {
           set: function (val) {
-            element[scopedEntry] = val;
-            entry.call(element, val);
+            element[scopedEntry] = val.data;
+            entry.call(element, val.data, val.channel);
           },
           get: function () {
             return element[scopedEntry];
@@ -34,18 +41,14 @@ define(function() {
       }
     });
 
-    element.emit = function (type, data) {
-      var customEvent = document.createEvent('CustomEvent');
-      customEvent.initCustomEvent('app-' + type, false, false, data);
-      element.dispatchEvent(customEvent);
-    };
-
-    element.avast = function (to, my, be) {
-      var avastElement = document.createElement('avast');
-      avastElement.setAttribute('to', to);
-      avastElement.setAttribute('my', my);
-      avastElement.setAttribute('be', be);
-      Ceci.parseAvastElement(avastElement);
+    element.emit = function (data) {
+      element.channels.out.forEach(function(channel) {
+        var customEvent = document.createEvent('CustomEvent');
+        customEvent.initCustomEvent(getChannel(channel), {bubbles: true});
+        customEvent.data = data;
+        element.dispatchEvent(customEvent);
+        console.log(element.id + " -> " + channel);
+      });
     };
 
     element.init = function() {
@@ -57,43 +60,63 @@ define(function() {
 
   Ceci.reserved = ['init', 'editable'];
 
-  Ceci.parseAvastElement = function (avastElement) {
-      var toElement = document.querySelector(avastElement.getAttribute('to'));
-      var myType = avastElement.getAttribute('my');
-      var beType = avastElement.getAttribute('be');
-      if (toElement) {
-        toElement.addEventListener('app-' + myType, function (e) {
-          toElement[beType] = e.data || e.detail;
-        }, false);
-      }
-    };
-
   Ceci._components = {};
 
-  Ceci.faire = function (element) {
+  function getChannelsByType(element, type) {
+    var channels = element.getElementsByTagName(type);
+    channels = Array.prototype.slice.call(channels);
+    if(channels.length===0) {
+      return false;
+    }
+    channels = channels.map(function(channel) {
+      return channel.getAttribute("channel");
+    });
+    return channels;
+  };
+
+  function getChannels(element) {
+    var inchan = getChannelsByType(element, "input"),
+        outchan = getChannelsByType(element, "output");
+    if(!inchan && !outchan) {
+      return {
+        in: ["blue"],
+        out: ["blue"]
+      };
+    }
+    return {
+      in: inchan || [],
+      out: outchan || []
+    };
+  };
+
+  Ceci.convertElement = function (element) {
     var def = Ceci._components[element.localName];
-
-    var avastElements = element.querySelectorAll('avast');
-
+    // data channels this element needs to hook into
+    element.channels = getChannels(element);
+    // real content
     element._innerHTML = element.innerHTML;
     element._innerText = element.innerText;
-
     if (def.template){
       element.innerHTML = def.template.innerHTML;
     }
-
     def.contructor.call(element);
-
-    Array.prototype.forEach.call(avastElements, function (avastElement) {
-      element.avast( avastElement.getAttribute('to'),
-                             avastElement.getAttribute('my'),
-                             avastElement.getAttribute('be'));
+    element.channels.in.forEach(function(channel) {
+      console.log(element.id, "adding event listener for", channel);
+      document.addEventListener(getChannel(channel), function(e) {
+        if(e.target !== element) {
+          console.log(element.id + " <- " + channel);
+          element.input = {
+            data: e.data,
+            channel: channel
+          };
+        }
+        return true;
+      })
     });
-
     element.init();
   };
 
-  Ceci.avoir = function (element) {
+  Ceci.processComponent = function (element) {
     var name = element.getAttribute('name');
     var template = element.querySelector('template');
     var script = element.querySelector('script[type="text/ceci"]');
@@ -107,15 +130,15 @@ define(function() {
 
     var existingElements = document.querySelectorAll(name);
     Array.prototype.forEach.call(existingElements, function (existingElement) {
-      Ceci.faire(existingElement);
+      Ceci.convertElement(existingElement);
     });
   };
 
-  Ceci.commencer = function (callback) {
+  Runner = function (callback) {
     function scrape () {
       var elements = document.querySelectorAll('element');
       elements = Array.prototype.slice.call(elements);
-      elements.forEach(Ceci.avoir);
+      elements.forEach(Ceci.processComponent);
     }
 
     var ceciLinks = document.querySelectorAll('link[rel=component][type="text/ceci"]');
@@ -150,5 +173,5 @@ define(function() {
     }
   };
 
-  return Ceci;
+  return Runner;
 });
