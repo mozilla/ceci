@@ -1,48 +1,51 @@
+<!doctype html>
 <html>
-<head>
-  <meta charset="utf-8">
-</head>
+  <head>
+    <meta charset="utf-8">
+  	<link rel="component" type="text/ceci" href="components.html">
+  </head>
+  <body>
+    <app-block id="app-block-1">
+      <input channel="red">
+    </app-block>
 
-<script src="//cdnjs.cloudflare.com/ajax/libs/require.js/2.1.8/require.min.js"></script>
-<link rel="component" type="text/ceci" href="components.html">
-<script>
-  document.addEventListener("DOMContentLoaded", function() {
-	require(["ceci"], function(Ceci) {
-	  console.log("commencing");
-	  Ceci.commencer();
-	});
-  });
-</script>
+    <app-block id="app-block-2">
+      <input channel="green">
+    </app-block>
 
-<!-- After this be the use of the components -->
+    <app-block id="app-block-3">
+    </app-block>
 
-<app-block id="app-block-1">
-</app-block>
+    <app-block id="app-block-4">
+      <input channel="red">
+      <input channel="purple">
+    </app-block>
 
-<app-block id="app-block-2">
-</app-block>
+    <app-prism id="app-prism">
+      <input channel="red">
+      <input channel="green">
+      <output channel="purple">
+    </app-prism>
 
-<app-timer id="timer">
-  <avast to="#app-block-2" my="ding" be="text">
-  <avast to="#value-thinger-2" my="ding" be="value">
-  <avast to="#timer" my="ding" be="period"/>
-</app-timer>
 
-<app-value-thinger id="value-thinger-1">
-  Change!
-  <avast to="#app-block-1" my="value" be="text">
-</app-value-thinger>
+    <app-timer id="timer-1" clockrate="1">
+    </app-timer>
 
-<br>
+    <app-timer id="timer-2" clockrate="1.3">
+      <output channel="red">
+    </app-timer>
 
-<app-value-thinger id="value-thinger-2">
-  Change timer period
-  <avast to="#timer" my="value" be="period">
-  <avast to="#timer_period" my="value" be="text">
-</app-value-thinger>
+    <app-timer id="timer-3" clockrate="1.75">
+      <output channel="green">
+    </app-timer>
 
-<br>
-Current Timer Period: <app-block id="timer_period">
-</app-block>
-
+    <script src="//cdnjs.cloudflare.com/ajax/libs/require.js/2.1.8/require.min.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function() {
+      require(["ceci"], function(Ceci) {
+        Ceci();
+      });
+      });
+    </script>
+  </body>
 </html>
