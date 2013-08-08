@@ -14,11 +14,7 @@
     },
     editable: {
       input: function(val, channel) {
-        console.log("got val ", val, "on channel", channel, "in canvas");
         this.querySelector('img').src = val;
-        // ctx.putImageData(val, 0, 0);
-        // ctx.drawImage(comp.video, 0, 0, canvas.width, canvas.height);
-        // .src = val;
       }
     }
   });
@@ -78,9 +74,6 @@
 
     looksGood: function(comp) {
       comp.stopMedia(comp);
-      // var canvas = comp.getElementsByClassName("canvas")[0];
-      // var dataurl = canvas.toDataURL('image/png');
-      // comp.snapshot.src = dataurl;
       comp.getElementsByClassName("modal")[0].classList.add('hidden');
       comp.getElementsByClassName("start")[0].classList.remove("hidden");
       comp.getElementsByClassName("looksgood")[0].classList.add("hidden");
@@ -111,7 +104,6 @@
     },
     editable: {
       input: function(val, channel) {
-
       }
     }
   });

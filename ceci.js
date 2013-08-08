@@ -103,7 +103,6 @@ define(function() {
       document.addEventListener(getChannel(channel), function(e) {
         if(e.target !== element) {
           console.log(element.id + " <- " + channel);
-          console.log(e);
           element.input = {
             data: e.detail,
             channel: channel
