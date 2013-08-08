@@ -46,7 +46,7 @@ define(function() {
         var customEvent = CustomEvent(getChannel(channel), {bubbles: true,
           detail: data})
         element.dispatchEvent(customEvent);
-        console.log(element.id + " -> " + channel); 
+        console.log(element.id + " -> " + channel);
       });
     };
 
