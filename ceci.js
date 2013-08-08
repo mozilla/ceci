@@ -43,11 +43,9 @@ define(function() {
 
     element.emit = function (data) {
       element.channels.out.forEach(function(channel) {
-        var customEvent = document.createEvent('CustomEvent');
-        customEvent.initCustomEvent(getChannel(channel), {bubbles: true});
-        customEvent.data = data;
+        var customEvent = CustomEvent(getChannel(channel), {bubbles: true,
+          detail: data})
         element.dispatchEvent(customEvent);
-        console.log(element.id + " -> " + channel);
       });
     };
 
@@ -105,8 +103,9 @@ define(function() {
       document.addEventListener(getChannel(channel), function(e) {
         if(e.target !== element) {
           console.log(element.id + " <- " + channel);
+          console.log(e);
           element.input = {
-            data: e.data,
+            data: e.detail,
             channel: channel
           };
         }
