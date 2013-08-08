@@ -43,7 +43,7 @@ define(function() {
 
     element.emit = function (data) {
       element.channels.out.forEach(function(channel) {
-        var customEvent = CustomEvent(getChannel(channel), {bubbles: true,
+        var customEvent = new CustomEvent(getChannel(channel), {bubbles: true,
           detail: data})
         element.dispatchEvent(customEvent);
         console.log(element.id + " -> " + channel);
