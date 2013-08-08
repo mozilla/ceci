@@ -1,6 +1,12 @@
-<element name="app-block">
+<element name="app-canvas">
   <template>
-    <div>Default Text</div>
+    <style type="text/css">
+      .img {
+        width: 160px;
+        height: 120px;
+      }
+    </style>
+    <img class="img"/>
   </template>
   <script type="text/ceci">
     Ceci(this, {
@@ -8,48 +14,98 @@
       },
       editable: {
         input: function (val, channel) {
-          this.querySelector('div').innerHTML = val;
+          this.querySelector('img').src = val;
         }
       }
     });
   </script>
 </element>
 
-<element name="app-prism">
-  <template></template>
-  <script type="text/ceci">
-    Ceci(this, {
-      init: function () {
-        this.values = {};
-      },
-      editable: {
-        input: function (val, channel) {
-          this.emit(val);
-        }
+<element name="app-shutter">
+  <template>
+    <style type="text/css">
+      .hidden {
+        display: none;
       }
-    });
-  </script>
-</element>
+      .modal {
+        height: 100%;
+        width: 100%;
+      }
+      .snapshot {
+        width: 160px;
+        height: 120px;
+      }
+    </style>
+    <button class="start" onclick="console.log(this); this.parentNode.startVideo(this.parentNode)">take a pix!</button>
+    <div class="modal hidden">
+      <div class="videoscreen">
+      </div>
+      <button onclick="this.parentNode.parentNode.captureImage(this.parentNode.parentNode)">click!</button>
+      <img class="snapshot">
+      <button class="looksgood hidden" onclick="this.parentNode.parentNode.looksGood(this.parentNode.parentNode)">Looks good!</button>
+  </template>
+  <script type="text/ceci">
+  Ceci(this, {
+    startVideo: function(comp) {
+      try {
+        window.navigator.mozGetUserMedia({video:true}, function(stream) {
+          comp.content.appendChild(comp.video);
+          comp.video.mozSrcObject = stream;
+          comp.video.play();
+          comp.getElementsByClassName("modal")[0].classList.remove('hidden');
+          comp.getElementsByClassName("looksgood")[0].classList.add('hidden');
+          comp.getElementsByClassName("snapshot")[0].src = '';
+          comp.getElementsByClassName("start")[0].classList.add("hidden");
+        }, function(err) {
+          console.log(err);
+          comp.stopMedia(comp);
+        });
+      } catch(e) {
+        console.log(e);
+        comp.stopMedia(comp);
+      }
+    },
 
-<element name="app-timer">
-  <script type="text/ceci">
-    Ceci(this, {
-      init: function() {
-        this.period = parseFloat(this.getAttribute("clockrate"))*1000;
-        this.count = 0;
-        this.tick();
-      },
-      tick: function() {
-        this.count++;
-        this.emit(this.count);
-        var t = this;
-        setTimeout(function() { t.tick(); }, this.period);
-      },
-      editable: {
-        input: function (val, channel) {
-          // should a timer do anything on input?
-        }
+    stopMedia: function(comp) {
+      comp.video.mozSrcObject.stop();
+      comp.video.mozSrcObject = null;
+      comp.content.removeChild(comp.video);
+    },
+
+    looksGood: function(comp) {
+      comp.stopMedia(comp);
+      comp.getElementsByClassName("modal")[0].classList.add('hidden');
+      comp.getElementsByClassName("start")[0].classList.remove("hidden");
+      comp.getElementsByClassName("looksgood")[0].classList.add("hidden");
+      comp.emit(comp.snapshot.src);
+    },
+
+    captureImage: function(comp) {
+      var canvas = document.createElement('canvas');
+      var ctx = canvas.getContext('2d');
+
+      canvas.width  = comp.video.videoWidth/4;
+      canvas.height = comp.video.videoHeight/4;
+      ctx.drawImage(comp.video, 0, 0, canvas.width, canvas.height);
+      var dataurl = canvas.toDataURL('image/png');
+      comp.snapshot.src = dataurl;
+      comp.getElementsByClassName("looksgood")[0].classList.remove("hidden");
+    },
+
+    init: function () {
+      var video_status = false;
+      var video = document.createElement("video");
+      this.video = video;
+      video.setAttribute("width", 160);
+      video.setAttribute("height", 120);
+      var comp = this;
+      comp.content = this.getElementsByClassName("videoscreen")[0];
+      comp.snapshot = this.getElementsByClassName("snapshot")[0];
+    },
+    editable: {
+      input: function(val, channel) {
       }
-    });
+    }
+  });
   </script>
 </element>
