@@ -6,7 +6,7 @@ define(function() {
 
   var Ceci = function (element, def) {
 
-    var reserved = ['init', 'editable'];
+    var reserved = ['init', 'listeners', 'defaultListener'];
 
     Object.keys(def).filter(function (item) {
       return reserved.indexOf(item) === -1;
@@ -17,38 +17,24 @@ define(function() {
       }
     });
 
-    Object.keys(def.editable).forEach(function (key) {
-      var entry = def.editable[key];
+    Object.keys(def.listeners).forEach(function (key) {
+      var entry = def.listeners[key];
       var entryType = typeof entry;
-      var scopedEntry = '_' + key;
 
       if (entryType === 'function') {
-        Object.defineProperty(element, key, {
-          set: function (val) {
-            element[scopedEntry] = val.data;
-            entry.call(element, val.data, val.channel);
-          },
-          get: function () {
-            return element[scopedEntry];
-          }
-        });
+        element[key] = entry;
       }
-      else if (entryType === 'object') {
-        Object.defineProperty(element, key, {
-          set: entry.set,
-          get: entry.get
-        });
+      else {
+        throw "Listener \"" + key + "\" is not a function.";
       }
     });
 
     element.emit = function (data) {
-      element.channels.out.forEach(function(channel) {
-        var customEvent = document.createEvent('CustomEvent');
-        customEvent.initCustomEvent(getChannel(channel), {bubbles: true});
-        customEvent.data = data;
-        element.dispatchEvent(customEvent);
-        console.log(element.id + " -> " + channel);
-      });
+      var customEvent = document.createEvent('CustomEvent');
+      customEvent.initCustomEvent(getChannel(element.broadcastChannel), {bubbles: true});
+      customEvent.data = data;
+      element.dispatchEvent(customEvent);
+      console.log(element.id + " -> " + element.broadcastChannel);
     };
 
     element.init = function() {
@@ -58,61 +44,76 @@ define(function() {
     };
   }
 
-  Ceci.reserved = ['init', 'editable'];
+  Ceci.reserved = ['init', 'listeners', 'defaultListener', 'initParams'];
+  Ceci.defaultChannel = "blue";
 
   Ceci._components = {};
 
-  function getChannelsByType(element, type) {
-    var channels = element.getElementsByTagName(type);
-    channels = Array.prototype.slice.call(channels);
-    if(channels.length===0) {
-      return false;
+  function getBroadcastChannel(element) {
+    var broadcast = element.getElementsByTagName('broadcast')[0];
+    if (broadcast){
+      var channel = broadcast.getAttribute("on");
+      if (channel) {
+        return channel;
+      }
     }
-    channels = channels.map(function(channel) {
-      return channel.getAttribute("channel");
-    });
-    return channels;
-  };
+    return Ceci.defaultChannel;
+  }
 
-  function getChannels(element) {
-    var inchan = getChannelsByType(element, "input"),
-        outchan = getChannelsByType(element, "output");
-    if(!inchan && !outchan) {
-      return {
-        in: ["blue"],
-        out: ["blue"]
-      };
+  function getSubscriptions(element) {
+    var subscriptions = element.getElementsByTagName('listen');
+    subscriptions = Array.prototype.slice.call(subscriptions);
+
+    if(subscriptions.length===0) {
+      // TODO: add the default;
+      return [];
     }
-    return {
-      in: inchan || [],
-      out: outchan || []
-    };
+
+    subscriptions = subscriptions.map(function (e) {
+      var channel = e.getAttribute("on");
+      var listener = e.getAttribute("for");
+
+      return {
+        listener: listener,
+        channel: (channel ? channel : Ceci.defaultChannel)
+      };
+    });
+
+    return subscriptions;
   };
 
   Ceci.convertElement = function (element) {
     var def = Ceci._components[element.localName];
     // data channels this element needs to hook into
-    element.channels = getChannels(element);
+    element.broadcastChannel = getBroadcastChannel(element);
+    element.subscriptions = getSubscriptions(element);
+
     // real content
     element._innerHTML = element.innerHTML;
     element._innerText = element.innerText;
     if (def.template){
       element.innerHTML = def.template.innerHTML;
     }
-    def.contructor.call(element);
-    element.channels.in.forEach(function(channel) {
-      console.log(element.id, "adding event listener for", channel);
-      document.addEventListener(getChannel(channel), function(e) {
+
+    def.contructor.call(element, def.initParams | {});
+
+    element.subscriptions.forEach(function (subscription) {
+
+      console.log(
+        "Adding event listener for",
+        element.id + '.' + subscription.listener + '(<data>)',
+        "on",
+        subscription.channel
+      );
+      document.addEventListener(getChannel(subscription.channel), function(e) {
         if(e.target !== element) {
-          console.log(element.id + " <- " + channel);
-          element.input = {
-            data: e.data,
-            channel: channel
-          };
+          console.log(element.id + " <- " + subscription.channel);
+          element[subscription.listener](e.data, subscription.channel);
         }
         return true;
       })
     });
+
     element.init();
   };
 
@@ -120,12 +121,24 @@ define(function() {
     var name = element.getAttribute('name');
     var template = element.querySelector('template');
     var script = element.querySelector('script[type="text/ceci"]');
-    var generator = new Function("Ceci", "return function() {" + script.innerHTML+ "}");
+
+    try{
+      var generator = new Function("Ceci", "return function() {" + script.innerHTML+ "}");
+    }
+    catch(e){
+      if (e.name === 'SyntaxError') {
+        e.message += " in definition of component \"" + name + "\".";
+        throw e;
+      }
+      else {
+        throw e;
+      }
+    }
     var contructor = generator(Ceci);
 
     Ceci._components[name] = {
       template: template,
-      contructor: contructor,
+      contructor: contructor
     };
 
     var existingElements = document.querySelectorAll(name);
