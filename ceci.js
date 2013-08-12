@@ -69,8 +69,12 @@ define(function() {
       Object.keys(def.editable).forEach(function (key) {
         var props = def.editable[key];
         bindAttributeChanging(element, key, props.edit);
-        delete props.edit;
-        elementAttributes[key] = props;
+        eak = {};
+        Object.keys(props).forEach(function(pkey) {
+          if (pkey === "edit") return;
+          eak[pkey] = props[pkey];
+        })
+        elementAttributes[key] = eak;
       });
     }
 
