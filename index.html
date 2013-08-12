@@ -11,7 +11,7 @@
     <app-input id="input">
       <broadcast on="blue">
     </app-input>
-      
+
     <app-label id="label">
       <listen on="blue" for="setValue">
     </app-label>
@@ -35,9 +35,9 @@
     <script src="//cdnjs.cloudflare.com/ajax/libs/require.js/2.1.8/require.min.js"></script>
     <script>
       document.addEventListener("DOMContentLoaded", function() {
-      require(["ceci"], function(Ceci) {
-        Ceci.load();
-      });
+        require(["ceci", "ceci-ui"], function(Ceci) {
+          Ceci.load();
+        });
       });
     </script>
   </body>
