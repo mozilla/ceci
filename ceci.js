@@ -42,46 +42,6 @@ define(function() {
       }
     }
 
-    var elementAttributes = {};
-
-    var bindAttributeChanging = function(target, attrName, fallthrough) {
-      // value tracking as "real" value
-      var v = false,
-          get = function() { return v; },
-          set = function(v) {
-            target.setAttribute(attrName, v);
-          };
-      Object.defineProperty(target, attrName, { get: get, set: set });
-
-      // feedback and mutation observing based on HTML attribute
-      var handler = function(mutations) {
-            mutations.forEach(function(mutation) {
-              v = target.getAttribute(attrName);
-              fallthrough.call(target, v);
-            });
-          },
-          observer = new MutationObserver(handler),
-          config = { attributes: true, attributeFilter: [attrName] };
-      observer.observe(target, config);
-    };
-
-    if (def.editable) {
-      Object.keys(def.editable).forEach(function (key) {
-        var props = def.editable[key];
-        bindAttributeChanging(element, key, props.edit);
-        eak = {};
-        Object.keys(props).forEach(function(pkey) {
-          if (pkey === "edit") return;
-          eak[pkey] = props[pkey];
-        })
-        elementAttributes[key] = eak;
-      });
-    }
-
-    element.getAttributeDefinition = function (attrName) {
-      return elementAttributes[attrName];
-    }
-
     element.emit = function (data) {
       var e = new CustomEvent(getChannel(element.broadcastChannel), {bubbles: true, detail: data});
       element.dispatchEvent(e);
@@ -93,8 +53,19 @@ define(function() {
         def.init.call(element);
       }
     };
+
+    Ceci._plugins.constructor.forEach(function(plugin) {
+      plugin(element, def);
+    });
   }
 
+  Ceci._plugins = {
+    constructor: []
+  }
+
+  Ceci.registerCeciPlugin = function(eventName, plugin) {
+    Ceci._plugins[eventName].push(plugin);
+  }
 
   Ceci.defaultChannel = "blue";
 
