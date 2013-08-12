@@ -6,10 +6,8 @@ define(function() {
 
   var Ceci = function (element, def) {
 
-    var reserved = ['init', 'listeners', 'defaultListener', 'editable'];
-
     Object.keys(def).filter(function (item) {
-      return reserved.indexOf(item) === -1;
+      return Ceci._reserved.indexOf(item) === -1;
     }).forEach(function (key) {
       var entry = def[key];
       if (typeof entry === 'function') {
@@ -57,6 +55,12 @@ define(function() {
     Ceci._plugins.constructor.forEach(function(plugin) {
       plugin(element, def);
     });
+  }
+
+  Ceci._reserved = ['init', 'listeners', 'defaultListener'];
+
+  Ceci.reserveKeyword = function(keyword) {
+    Ceci._reserved.push(keyword);
   }
 
   Ceci._plugins = {

@@ -43,6 +43,7 @@ define(["ceci"], function(Ceci) {
   }
 
   // register ourselves with Ceci
+  Ceci.reserveKeyword("editable");
   Ceci.registerCeciPlugin("constructor", CeciUI);
 
   // return this plugin, for good measure
