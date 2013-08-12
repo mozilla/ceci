@@ -6,9 +6,7 @@ define(function() {
 
   var Ceci = function (element, def) {
 
-    var reserved = ['init', 'listeners', 'defaultListener'];
-
-    
+    var reserved = ['init', 'listeners', 'defaultListener', 'editable'];
 
     Object.keys(def).filter(function (item) {
       return reserved.indexOf(item) === -1;
@@ -44,6 +42,40 @@ define(function() {
       }
     }
 
+    var elementAttributes = {};
+
+    var bindAttributeChanging = function(target, attrName, fallthrough) {
+      // value tracking as "real" value
+      var v = false,
+          get = function() { return v; },
+          set = function(v) {
+            target.setAttribute(attrName, v);
+          };
+      Object.defineProperty(target, attrName, { get: get, set: set });
+
+      // feedback and mutation observing based on HTML attribute
+      var handler = function(mutations) {
+            mutations.forEach(function(mutation) {
+              v = target.getAttribute(attrName);
+              fallthrough.call(target, v);
+            });
+          },
+          observer = new MutationObserver(handler),
+          config = { attributes: true, attributeFilter: [attrName] };
+      observer.observe(target, config);
+    };
+
+    if (def.editable) {
+      Object.keys(def.editable).forEach(function (key) {
+        var props = def.editable[key];
+        bindAttributeChanging(element, key, props.edit);
+        elementAttributes[key] = props;
+      });
+    }
+
+    element.getAttributeDefinition = function (attrName) {
+      return elementAttributes[attrName];
+    }
 
     element.emit = function (data) {
       var e = new CustomEvent(getChannel(element.broadcastChannel), {bubbles: true, detail: data});
@@ -58,7 +90,7 @@ define(function() {
     };
   }
 
-  
+
   Ceci.defaultChannel = "blue";
 
   Ceci._components = {};
@@ -104,7 +136,7 @@ define(function() {
     // data channels this element needs to hook into
     element.broadcastChannel = getBroadcastChannel(element);
     element.subscriptions = getSubscriptions(element, def.defaultListener);
-    
+
     // real content
     element._innerHTML = element.innerHTML;
     element._innerText = element.innerText;
