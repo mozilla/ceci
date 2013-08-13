@@ -19,12 +19,15 @@ define(function() {
       def.defaultListener = Object.keys(def.listeners)[0];
     }
 
+    element.subscriptionListeners = [];
+
     Object.keys(def.listeners).forEach(function (key) {
       var entry = def.listeners[key];
       var entryType = typeof entry;
 
       if (entryType === 'function') {
         element[key] = entry;
+        element.subscriptionListeners.push(key);
       }
       else {
         throw "Listener \"" + key + "\" is not a function.";
@@ -127,7 +130,6 @@ define(function() {
     def.contructor.call(element, def.initParams | {});
 
     element.subscriptions.forEach(function (subscription) {
-
       console.log(
         "Adding event listener for",
         element.id + '.' + subscription.listener + '(<data>)',
