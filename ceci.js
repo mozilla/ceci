@@ -34,9 +34,12 @@ define(function() {
       }
     });
 
-    if (def.defaultListener){
-      element.defaultListener = def.listeners[def.defaultListener];
+    var defaultListener = def.defaultListener;
+    if (!defaultListener){
+      defaultListener = Object.keys(def.listeners)[0];
     }
+    element.defaultListener = def.listeners[defaultListener];
+
     else {
       element.defaultListener = function(data){
         console.log("No default listener set");
