@@ -15,9 +15,11 @@ define(function() {
       }
     });
 
-    if (!def.defaultListener){
-      def.defaultListener = Object.keys(def.listeners)[0];
+    var defaultListener = def.defaultListener;
+    if (!defaultListener) {
+      defaultListener = Object.keys(def.listeners)[0];
     }
+    element.defaultListener = defaultListener;
 
     element.subscriptionListeners = [];
 
@@ -33,12 +35,6 @@ define(function() {
         throw "Listener \"" + key + "\" is not a function.";
       }
     });
-
-    var defaultListener = def.defaultListener;
-    if (!defaultListener){
-      defaultListener = Object.keys(def.listeners)[0];
-    }
-    element.defaultListener = def.listeners[defaultListener];
 
     element.emit = function (data) {
       var e = new CustomEvent(getChannel(element.broadcastChannel), {bubbles: true, detail: data});
@@ -86,13 +82,13 @@ define(function() {
     return Ceci.defaultChannel;
   }
 
-  function getSubscriptions(element) {
-    var subscriptions = element.getElementsByTagName('listen');
+  function getSubscriptions(element, original) {
+    var subscriptions = original.getElementsByTagName('listen');
     subscriptions = Array.prototype.slice.call(subscriptions);
 
     if(subscriptions.length === 0) {
       return [{
-        listener: 'defaultListener',
+        listener: element.defaultListener,
         channel: Ceci.defaultChannel
       }];
     }
@@ -110,17 +106,19 @@ define(function() {
     return subscriptions;
   }
 
-  function setupBroadcastLogic(element, oriting) {
-    console.log("binding "+(element.id || '[unknown id]')+" broadcast channel");
-    element.broadcastChannel = getBroadcastChannel(element);
+  function setupBroadcastLogic(element, original) {
+    // get <broadcast> rules from the original declaration
+    element.broadcastChannel = getBroadcastChannel(original);
+    // set property on actual on-page element
     element.setBroadcastChannel = function(channel) {
       element.broadcastChannel = channel;
     }
   }
 
-  function setupSubscriptionLogic(element, defaultListener) {
-    console.log("binding "+(element.id || '[unknown id]')+" subscription channels");
-    element.subscriptions = getSubscriptions(element, defaultListener);
+  function setupSubscriptionLogic(element, original) {
+    // get <listen> rules from the original declaration
+    element.subscriptions = getSubscriptions(element, original);
+    // set properties on actual on-page element
     element.setSubscription = function(channel, listener) {
       var append = true;
       element.subscriptions.forEach(function(s) {
@@ -136,7 +134,7 @@ define(function() {
         });
       }
     };
-    e.removeSubscription = function(channel, listener) {
+    element.removeSubscription = function(channel, listener) {
       e.subscriptions = e.subscriptions.filter(function(s) {
         return !(s.channel === channel && s.listener === listener);
       })
@@ -161,12 +159,12 @@ define(function() {
     setupSubscriptionLogic(element, original);
 
     element.subscriptions.forEach(function (subscription) {
-//      console.log(
-//        "Adding event listener for",
-//        element.id + '.' + subscription.listener + '(<data>)',
-//        "on",
-//        subscription.channel
-//      );
+      console.log(
+        "Adding event listener for",
+        element.id + '.' + subscription.listener + '(<data>)',
+        "on",
+        subscription.channel
+      );
       document.addEventListener(getChannel(subscription.channel), function(e) {
         if(e.target !== element) {
           // console.log(element.id + " <- " + subscription.channel);
