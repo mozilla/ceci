@@ -15,9 +15,11 @@ define(function() {
       }
     });
 
-    if (!def.defaultListener){
-      def.defaultListener = Object.keys(def.listeners)[0];
+    var defaultListener = def.defaultListener;
+    if (!defaultListener) {
+      defaultListener = Object.keys(def.listeners)[0];
     }
+    element.defaultListener = defaultListener;
 
     element.subscriptionListeners = [];
 
@@ -33,15 +35,6 @@ define(function() {
         throw "Listener \"" + key + "\" is not a function.";
       }
     });
-
-    if (def.defaultListener){
-      element.defaultListener = def.listeners[def.defaultListener];
-    }
-    else {
-      element.defaultListener = function(data){
-        console.log("No default listener set");
-      }
-    }
 
     element.emit = function (data) {
       var e = new CustomEvent(getChannel(element.broadcastChannel), {bubbles: true, detail: data});
@@ -89,13 +82,13 @@ define(function() {
     return Ceci.defaultChannel;
   }
 
-  function getSubscriptions(element) {
-    var subscriptions = element.getElementsByTagName('listen');
+  function getSubscriptions(element, original) {
+    var subscriptions = original.getElementsByTagName('listen');
     subscriptions = Array.prototype.slice.call(subscriptions);
 
     if(subscriptions.length === 0) {
       return [{
-        listener: 'defaultListener',
+        listener: element.defaultListener,
         channel: Ceci.defaultChannel
       }];
     }
@@ -111,14 +104,46 @@ define(function() {
     });
 
     return subscriptions;
-  };
+  }
+
+  function setupBroadcastLogic(element, original) {
+    // get <broadcast> rules from the original declaration
+    element.broadcastChannel = getBroadcastChannel(original);
+    // set property on actual on-page element
+    element.setBroadcastChannel = function(channel) {
+      element.broadcastChannel = channel;
+    }
+  }
+
+  function setupSubscriptionLogic(element, original) {
+    // get <listen> rules from the original declaration
+    element.subscriptions = getSubscriptions(element, original);
+    // set properties on actual on-page element
+    element.setSubscription = function(channel, listener) {
+      var append = true;
+      element.subscriptions.forEach(function(s) {
+        if(s.listener === listener) {
+          s.channel = channel;
+          append = false;
+        }
+      });
+      if(append) {
+        element.subscriptions.push({
+          listener: listener,
+          channel: channel
+        });
+      }
+    };
+    element.removeSubscription = function(channel, listener) {
+      e.subscriptions = e.subscriptions.filter(function(s) {
+        return !(s.channel === channel && s.listener === listener);
+      })
+    };
+  }
 
   Ceci.convertElement = function (element) {
-    var def = Ceci._components[element.localName];
-    console.log(def);
-    // data channels this element needs to hook into
-    element.broadcastChannel = getBroadcastChannel(element);
-    element.subscriptions = getSubscriptions(element, def.defaultListener);
+    var def = Ceci._components[element.localName],
+        original = element.cloneNode(true);
 
     // real content
     element._innerHTML = element.innerHTML;
@@ -128,6 +153,10 @@ define(function() {
     }
 
     def.contructor.call(element, def.initParams | {});
+
+    // channel logic
+    setupBroadcastLogic(element, original);
+    setupSubscriptionLogic(element, original);
 
     element.subscriptions.forEach(function (subscription) {
       console.log(
