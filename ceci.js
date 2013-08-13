@@ -40,12 +40,6 @@ define(function() {
     }
     element.defaultListener = def.listeners[defaultListener];
 
-    else {
-      element.defaultListener = function(data){
-        console.log("No default listener set");
-      }
-    }
-
     element.emit = function (data) {
       var e = new CustomEvent(getChannel(element.broadcastChannel), {bubbles: true, detail: data});
       element.dispatchEvent(e);
@@ -116,27 +110,27 @@ define(function() {
     return subscriptions;
   }
 
-  function setupBroadcastLogic(e) {
-    console.log("binding "+(e.id || '[unknown id]')+" broadcast channel");
-    e.broadcastChannel = getBroadcastChannel(e);
-    e.setBroadcastChannel = function(channel) {
-      e.broadcastChannel = channel;
+  function setupBroadcastLogic(element, oriting) {
+    console.log("binding "+(element.id || '[unknown id]')+" broadcast channel");
+    element.broadcastChannel = getBroadcastChannel(element);
+    element.setBroadcastChannel = function(channel) {
+      element.broadcastChannel = channel;
     }
   }
 
-  function setupSubscriptionLogic(e, defaultListener) {
-    console.log("binding "+(e.id || '[unknown id]')+" subscription channels");
-    e.subscriptions = getSubscriptions(e, defaultListener);
-    e.setSubscription = function(channel, listener) {
+  function setupSubscriptionLogic(element, defaultListener) {
+    console.log("binding "+(element.id || '[unknown id]')+" subscription channels");
+    element.subscriptions = getSubscriptions(element, defaultListener);
+    element.setSubscription = function(channel, listener) {
       var append = true;
-      e.subscriptions.forEach(function(s) {
+      element.subscriptions.forEach(function(s) {
         if(s.listener === listener) {
           s.channel = channel;
           append = false;
         }
       });
       if(append) {
-        e.subscriptions.push({
+        element.subscriptions.push({
           listener: listener,
           channel: channel
         });
@@ -150,12 +144,8 @@ define(function() {
   }
 
   Ceci.convertElement = function (element) {
-    var def = Ceci._components[element.localName];
-    console.log(element);
-
-    // channel logic
-    setupBroadcastLogic(element);
-    setupSubscriptionLogic(element, def.defaultListener);
+    var def = Ceci._components[element.localName],
+        original = element.cloneNode(true);
 
     // real content
     element._innerHTML = element.innerHTML;
@@ -165,6 +155,10 @@ define(function() {
     }
 
     def.contructor.call(element, def.initParams | {});
+
+    // channel logic
+    setupBroadcastLogic(element, original);
+    setupSubscriptionLogic(element, original);
 
     element.subscriptions.forEach(function (subscription) {
 //      console.log(
