@@ -111,14 +111,48 @@ define(function() {
     });
 
     return subscriptions;
-  };
+  }
+
+  function setupBroadcastLogic(e) {
+    console.log("binding "+(e.id || '[unknown id]')+" broadcast channel");
+    e.broadcastChannel = getBroadcastChannel(e);
+    e.setBroadcastChannel = function(channel) {
+      e.broadcastChannel = channel;
+    }
+  }
+
+  function setupSubscriptionLogic(e, defaultListener) {
+    console.log("binding "+(e.id || '[unknown id]')+" subscription channels");
+    e.subscriptions = getSubscriptions(e, defaultListener);
+    e.setSubscription = function(channel, listener) {
+      var append = true;
+      e.subscriptions.forEach(function(s) {
+        if(s.listener === listener) {
+          s.channel = channel;
+          append = false;
+        }
+      });
+      if(append) {
+        e.subscriptions.push({
+          listener: listener,
+          channel: channel
+        });
+      }
+    };
+    e.removeSubscription = function(channel, listener) {
+      e.subscriptions = e.subscriptions.filter(function(s) {
+        return !(s.channel === channel && s.listener === listener);
+      })
+    };
+  }
 
   Ceci.convertElement = function (element) {
     var def = Ceci._components[element.localName];
-    console.log(def);
-    // data channels this element needs to hook into
-    element.broadcastChannel = getBroadcastChannel(element);
-    element.subscriptions = getSubscriptions(element, def.defaultListener);
+    console.log(element);
+
+    // channel logic
+    setupBroadcastLogic(element);
+    setupSubscriptionLogic(element, def.defaultListener);
 
     // real content
     element._innerHTML = element.innerHTML;
@@ -130,12 +164,12 @@ define(function() {
     def.contructor.call(element, def.initParams | {});
 
     element.subscriptions.forEach(function (subscription) {
-      console.log(
-        "Adding event listener for",
-        element.id + '.' + subscription.listener + '(<data>)',
-        "on",
-        subscription.channel
-      );
+//      console.log(
+//        "Adding event listener for",
+//        element.id + '.' + subscription.listener + '(<data>)',
+//        "on",
+//        subscription.channel
+//      );
       document.addEventListener(getChannel(subscription.channel), function(e) {
         if(e.target !== element) {
           // console.log(element.id + " <- " + subscription.channel);
