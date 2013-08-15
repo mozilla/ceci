@@ -114,6 +114,7 @@ define(function() {
   function setupSubscriptionLogic(element, original) {
     // get <listen> rules from the original declaration
     element.subscriptions = getSubscriptions(element, original);
+
     var generateListener = function(element, channel, listener) {
       return function(e) {
         if(e.target !== element) {
@@ -165,9 +166,12 @@ define(function() {
 //        "on",
 //        s.channel
 //      );
-      var fn = generateListener(element, s.channel, s.listener);
-      element[s.listener].listeningFunction = fn;
-      document.addEventListener(s.channel, fn);
+      if (s.listener){
+        var fn = generateListener(element, s.channel, s.listener);
+        console.log(s.listener);
+        element[s.listener].listeningFunction = fn;
+        document.addEventListener(s.channel, fn);
+      }
     });
 
   }
