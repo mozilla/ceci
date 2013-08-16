@@ -13,24 +13,18 @@
     </app-input>
 
     <app-label id="label">
-      <listen on="blue" then="setValue">
+      <listen on="blue" for="setValue">
     </app-label>
-
 
     <app-counter id="counter-global">
       <listen on="blue" for="increase">
       <listen on="green" for="increase">
+        <broadcast on="red">
     </app-counter>
-
 
     <app-counter id="counter-green">
       <listen on="green" for="increase">
     </app-counter>
-
-
-    <app-metronome>
-      <broadcast on="green">
-    </app-metronome>
 
     <script src="//cdnjs.cloudflare.com/ajax/libs/require.js/2.1.8/require.min.js"></script>
     <script>
