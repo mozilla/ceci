@@ -1,0 +1,21 @@
+{
+  "name": "ceci-builder",
+  "version": "0.0.0",
+  "description": "ceci-builder",
+  "main": "server.js",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/mozilla/ceci.git"
+  },
+  "author": "",
+  "license": "MPLv2",
+  "readmeFilename": "README.md",
+  "bugs": {
+    "url": "https://github.com/mozilla/appmaker/issues"
+  },
+  "dependencies": {
+    "express": "~3.3.4",
+    "q": "~0.9.6",
+    "fs-extra": "~0.6.3"
+  }
+}
