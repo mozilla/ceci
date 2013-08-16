@@ -1,0 +1,21 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Builder Test</title>
+  </head>
+  <body>
+    <h1>Builder Test</h1>
+
+    <p>
+        Tests the builder. Select an HTML file to upload to builder to make
+        a zip.
+    </p>
+
+    <form action="http://127.0.0.1:8321/api/makezip" method="POST" enctype="multipart/form-data">
+        <input name="index" type="file">
+        <input type="submit" name="submit" value="submit">
+    </form>
+
+  </body>
+</html>
