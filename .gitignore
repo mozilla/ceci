@@ -7,6 +7,10 @@ lib-cov
 *.pid
 *.gz
 
+builder/appmaker-components
+builder/output
+builder/node_modules
+
 pids
 logs
 results

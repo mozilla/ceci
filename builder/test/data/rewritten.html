@@ -2,7 +2,9 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <link rel="component" type="text/ceci" href="//appmaker-components.herokuapp.com/package/all">
+    <link rel="component" type="text/ceci" href="appmaker-components/components/counter.html">
+    <link rel="component" type="text/ceci" href="appmaker-components/components/input.html">
+    <link rel="component" type="text/ceci" href="appmaker-components/components/label.html">
   </head>
   <body>
     <app-counter id="counter">
@@ -32,7 +34,12 @@
       <broadcast on="green">
     </app-metronome>
 
-    <script src="//cdnjs.cloudflare.com/ajax/libs/require.js/2.1.8/require.min.js"></script>
+    <script src="scripts/require.min.js"></script>
+<script>
+requirejs.config({
+    baseUrl: 'scripts'
+});
+</script>
     <script>
       document.addEventListener("DOMContentLoaded", function() {
         require(["ceci", "ceci-ui"], function(Ceci) {
