@@ -75,7 +75,8 @@ define(function() {
         return channel;
       }
     }
-    return Ceci._defaultBroadcastChannel;
+    // if no broadcast channel is specified, don't broadcast
+    return Ceci._emptyChannel;
   }
 
   // this function is only called once, when an element is instantiated.
