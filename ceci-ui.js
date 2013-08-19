@@ -8,6 +8,7 @@ define(["ceci"], function(Ceci) {
   channelBlock.setAttribute("class", "channel");
 
   var setChannelIndicator = function(element, type, channel, listener) {
+    
     // do we need to add the visualisation block?
     if(!element.querySelector(".channel-visualisation")) {
       element.appendChild(colorBlock.cloneNode(true));
@@ -24,13 +25,25 @@ define(["ceci"], function(Ceci) {
       }
       element.querySelector(sel).appendChild(cblock);
     }
+
     // set relevant channel color, or remove if disabled
     var channelElement = element.querySelector(lsel);
+    
     if(channel === Ceci._emptyChannel) {
       channelElement.parentNode.removeChild(channelElement);
     } else {
-      channelElement.style.color = channel;
+      channelElement.setAttribute("color",channel);
     }
+  
+    //Hide all but the first indicator for this particular color
+    //We only want to show one indicator per color
+    var indicators  = $(element).find(sel).find(".channel[color="+channel+"]");
+    indicators.show();
+    if(indicators.length > 1) {
+      indicators.hide();
+      indicators.filter(":first").show();
+    }
+
   };
 
   var CeciUI = function(element, def) {
