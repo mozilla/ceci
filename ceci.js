@@ -116,6 +116,9 @@ define(function() {
   function setupBroadcastLogic(element, original) {
     // get <broadcast> rules from the original declaration
     element.broadcastChannel = getBroadcastChannel(element, original);
+    if(element.onBroadcastChannelChanged) {
+      element.onBroadcastChannelChanged(element.broadcastChannel);
+    }
     // set property on actual on-page element
     element.setBroadcastChannel = function(channel) {
       element.broadcastChannel = channel;
@@ -128,6 +131,11 @@ define(function() {
   function setupSubscriptionLogic(element, original) {
     // get <listen> rules from the original declaration
     element.subscriptions = getSubscriptions(element, original);
+    if(element.onSubscriptionChannelChanged) {
+      element.subscriptions.forEach(function(s){
+        element.onSubscriptionChannelChanged(s.channel, s.listener);
+      });
+    }
     var generateListener = function(element, channel, listener) {
       return function(e) {
         if(e.target.id !== element.id) {
@@ -157,9 +165,6 @@ define(function() {
           } else {
             fn = false;
           }
-          if(element.onSubscriptionChannelChanged) {
-            element.onSubscriptionChannelChanged(channel, listener);
-          }
           element[listener].listeningFunction = fn;
           append = false;
         }
@@ -173,6 +178,9 @@ define(function() {
           listener: listener,
           channel: channel
         });
+      }
+      if(element.onSubscriptionChannelChanged) {
+        element.onSubscriptionChannelChanged(channel, listener);
       }
     };
     element.removeSubscription = function(channel, listener) {
