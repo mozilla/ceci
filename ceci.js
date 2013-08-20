@@ -41,6 +41,10 @@ define(function() {
       }
     };
 
+    if (def.broadcast) {
+      element.broadcast = def.broadcast;
+    };
+
     Ceci._plugins.constructor.forEach(function(plugin) {
       plugin(element, def);
     });
@@ -67,16 +71,18 @@ define(function() {
   Ceci._components = {};
 
   // this function is only called once, when an element is instantiated.
-  function getBroadcastChannel(element) {
-    var broadcast = element.getElementsByTagName('broadcast')[0];
+  function getBroadcastChannel(element, original) {
+    // get <broadcast> element information
+    var broadcast = original.getElementsByTagName('broadcast')[0];
     if (broadcast){
       var channel = broadcast.getAttribute("on");
       if (channel) {
         return channel;
       }
     }
-    // if no broadcast channel is specified, don't broadcast
-    return Ceci._emptyChannel;
+    // if no broadcast channel is specified, but this is a broadcast
+    // element, use the default channel. Otherwise, don't broadcast
+    return (element.broadcast ? Ceci._defaultBroadcastChannel : Ceci._emptyChannel);
   }
 
   // this function is only called once, when an element is instantiated.
@@ -109,7 +115,7 @@ define(function() {
 
   function setupBroadcastLogic(element, original) {
     // get <broadcast> rules from the original declaration
-    element.broadcastChannel = getBroadcastChannel(original);
+    element.broadcastChannel = getBroadcastChannel(element, original);
     // set property on actual on-page element
     element.setBroadcastChannel = function(channel) {
       element.broadcastChannel = channel;
@@ -198,16 +204,17 @@ define(function() {
     // real content
     element._innerHTML = element.innerHTML;
     element._innerText = element.innerText;
+
     if (def.template){
       element.innerHTML = def.template.innerHTML;
     }
+
     if (def.description) {
       element.description = def.description;
     }
 
     def.contructor.call(element, def.initParams | {});
 
-    // channel logic
     setupBroadcastLogic(element, original);
     setupSubscriptionLogic(element, original);
     element.init();
