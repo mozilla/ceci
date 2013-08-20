@@ -201,6 +201,9 @@ define(function() {
     if (def.template){
       element.innerHTML = def.template.innerHTML;
     }
+    if (def.description) {
+      element.description = def.description;
+    }
 
     def.contructor.call(element, def.initParams | {});
 
@@ -214,6 +217,7 @@ define(function() {
     var name = element.getAttribute('name');
     var template = element.querySelector('template');
     var script = element.querySelector('script[type="text/ceci"]');
+    var description = element.querySelector('description');
 
     try{
       var generator = new Function("Ceci", "return function() {" + script.innerHTML+ "}");
@@ -231,7 +235,8 @@ define(function() {
 
     Ceci._components[name] = {
       template: template,
-      contructor: contructor
+      contructor: contructor,
+      description: description
     };
 
     var existingElements = document.querySelectorAll(name);
@@ -240,16 +245,16 @@ define(function() {
     });
   };
 
-  Ceci.load = function (callback) {
-    function scrape (callback) {
-      var elements = document.querySelectorAll('element');
-      elements = Array.prototype.slice.call(elements);
-      elements.forEach(Ceci.processComponent);
-      if (callback){
-        callback(Ceci._components);
-      }
+  function scrape (callOnComplete) {
+    var elements = document.querySelectorAll('element');
+    elements = Array.prototype.slice.call(elements);
+    elements.forEach(Ceci.processComponent);
+    if (callOnComplete){
+      callOnComplete(Ceci._components);
     }
+  }
 
+  Ceci.load = function (callOnComplete) {
     var ceciLinks = document.querySelectorAll('link[rel=component][type="text/ceci"]');
 
     if (ceciLinks.length) {
@@ -260,6 +265,7 @@ define(function() {
         xhr.open('GET', docURL ,true);
         xhr.onload = function (e) {
           var fragment = document.createElement('div');
+          fragment.setAttribute("style","display:none!important");
           fragment.innerHTML = xhr.response;
           if (document.body.firstChild) {
             document.body.insertBefore(fragment, document.body.firstChild);
@@ -268,14 +274,14 @@ define(function() {
             document.body.appendChild(fragment);
           }
           if (--linksLeft === 0) {
-            scrape(callback);
+            scrape(callOnComplete);
           }
         };
         xhr.send(null);
       });
     }
     else {
-      scrape(callback);
+      scrape(callOnComplete);
     }
   };
 

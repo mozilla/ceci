@@ -53,3 +53,27 @@
     });
   </script>
 </element>
+
+<element name="app-test-documentation">
+  <template>
+    <p class="content">Just some text</p>
+  </template>
+  <description>
+    <h1>The <code>app-pomax</code> element</h1>
+    <p>This element can be used to test Ceci.js functionality.</p>
+    <p>We can use arbitrary documentation here, although it might make
+      sense to use some established microdata format for semantic
+      tagging of information.</p>
+  </description>
+  <script type="text/ceci">
+    Ceci(this, {
+      init: function (params) {
+      },
+      listeners: {
+        setText: function (val) {
+          this.querySelector('.content').innerHTML = val;
+        }
+      }
+    });
+  </script>
+</element>
