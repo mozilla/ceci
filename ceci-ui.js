@@ -1,18 +1,22 @@
 define(["ceci"], function(Ceci) {
 
-  var colorBlock = document.createElement("div");
-  colorBlock.setAttribute("class", "channel-visualisation");
-  colorBlock.innerHTML = "<div class='broadcast-channels'></div>"+
-                         "<div class='subscription-channels'></div>";
+  var broadcastBlock = document.createElement("div");
+  broadcastBlock.setAttribute("class","channel-visualisation broadcast-channels");
+
+  var subscriptionBlock = document.createElement("div");
+  subscriptionBlock.setAttribute("class","channel-visualisation subscription-channels");
+
   var channelBlock = document.createElement("div");
   channelBlock.setAttribute("class", "channel");
 
   var setChannelIndicator = function(element, type, channel, listener) {
     
     // do we need to add the visualisation block?
-    if(!element.querySelector(".channel-visualisation")) {
-      element.appendChild(colorBlock.cloneNode(true));
+    if(!element.querySelector(".broadcast-channels")) {
+      element.appendChild(broadcastBlock.cloneNode(true));
+      element.appendChild(subscriptionBlock.cloneNode(true));
     }
+
     // get the selector for the element whose color we need to change
     var sel = "." + type + "-channels",
         lsel = sel + " .channel" + (listener ? '.' + listener : ''),
