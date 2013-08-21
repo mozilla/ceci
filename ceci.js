@@ -7,7 +7,9 @@ define(function() {
     }).forEach(function (key) {
       var entry = def[key];
       if (typeof entry === 'function') {
-        element[key] = entry;
+        element[key] = function() {
+          entry.apply(element, arguments);
+        }
       }
     });
 
@@ -15,18 +17,22 @@ define(function() {
 
     element.subscriptionListeners = [];
 
-    Object.keys(def.listeners).forEach(function (key) {
-      var entry = def.listeners[key];
-      var entryType = typeof entry;
+    if(def.listeners) {
+      Object.keys(def.listeners).forEach(function (key) {
+        var entry = def.listeners[key];
+        var entryType = typeof entry;
 
-      if (entryType === 'function') {
-        element[key] = entry;
-        element.subscriptionListeners.push(key);
-      }
-      else {
-        throw "Listener \"" + key + "\" is not a function.";
-      }
-    });
+        if (entryType === 'function') {
+          element[key] = function() {
+            entry.apply(element, arguments);
+          };
+          element.subscriptionListeners.push(key);
+        }
+        else {
+          throw "Listener \"" + key + "\" is not a function.";
+        }
+      });
+    }
 
     element.emit = function (data) {
       if(element.broadcastChannel === Ceci._emptyChannel) return;
@@ -39,7 +45,7 @@ define(function() {
     element.init = function () {};
     if(def.init) {
       element.init = function() {
-        def.init.call(element);
+        def.init.apply(element, arguments);
       };
     }
 
