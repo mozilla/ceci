@@ -38,13 +38,13 @@ define(["ceci"], function(Ceci) {
       channelElement.setAttribute("color",channel);
     }
 
-    //Hide all but the first indicator for this particular color
-    //We only want to show one indicator per color
-    var indicators  = $(element).find(sel).find(".channel[color="+channel+"]");
-    indicators.show();
-    if(indicators.length > 1) {
-      indicators.hide();
-      indicators.filter(":first").show();
+    // Hide all but the first indicator for this particular color
+    // We only want to show one indicator per color
+    sel += " .channel[color="+channel+"]";
+    var indicators  = element.querySelectorAll(sel);
+    indicators[0].style.display = "block";
+    for(var i=1; i<indicators.length; i++) {
+      indicators.item(i).style.display = "none";
     }
   };
 

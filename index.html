@@ -4,36 +4,45 @@
     <meta charset="utf-8">
     <link rel="component" type="text/ceci" href="//appmaker-components.herokuapp.com/package/all">
     <link rel="component" type="text/ceci" href="components.html">
+    <style>
+      div.flathead-card:focus {
+        background-color: orange;
+      }
+    </style>
   </head>
   <body>
     <app-counter id="counter">
     </app-counter>
 
-    <app-input id="input">
-      <broadcast on="blue">
-    </app-input>
+    <div class="flathead-card">
+      <app-input id="input">
+        <broadcast on="blue">
+      </app-input>
 
-    <app-label id="label">
-      <listen on="blue" for="setValue">
-    </app-label>
+      <app-label id="label">
+        <listen on="blue" for="setValue">
+      </app-label>
 
-    <app-counter id="counter-global">
-      <listen on="blue" for="increase">
-      <listen on="green" for="increase">
-        <broadcast on="red">
-    </app-counter>
+      <app-counter id="counter-global">
+        <listen on="blue" for="increase">
+        <listen on="green" for="increase">
+          <broadcast on="red">
+      </app-counter>
+    </div>
 
-    <app-counter id="counter-green">
-      <listen on="green" for="increase">
-    </app-counter>
+    <div class="flathead-card">
+      <app-counter id="counter-green">
+        <listen on="green" for="increase">
+      </app-counter>
 
-    <app-test-documentation id="test-docs">
+      <app-test-documentation id="test-docs">
+    </div>
 
     <script src="//cdnjs.cloudflare.com/ajax/libs/require.js/2.1.8/require.min.js"></script>
     <script>
       document.addEventListener("DOMContentLoaded", function() {
-        require(["ceci", "ceci-ui"], function(Ceci) {
-          Ceci.load();
+        require(["ceci", "ceci-ui", "cards"], function(Ceci, CeciUI, Cards) {
+          Ceci.load(Cards.load);
         });
       });
     </script>
