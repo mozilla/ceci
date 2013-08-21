@@ -42,9 +42,11 @@ define(["ceci"], function(Ceci) {
     // We only want to show one indicator per color
     sel += " .channel[color="+channel+"]";
     var indicators  = element.querySelectorAll(sel);
-    indicators[0].style.display = "block";
-    for(var i=1; i<indicators.length; i++) {
-      indicators.item(i).style.display = "none";
+    if(indicators.length > 0) {
+      indicators[0].style.display = "block";
+      for(var i=1; i<indicators.length; i++) {
+        indicators.item(i).style.display = "none";
+      }
     }
   };
 
