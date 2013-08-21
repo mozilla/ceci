@@ -18,11 +18,17 @@ define(["ceci"], function(Ceci) {
 
   function extend(element, card) {
     console.log("child added: ", element);
-
-    // allow elements to indicate that "their" card needs focus
+    element.card = card;
     element.showCard = function() {
       console.log("shifting focus to ", card);
       showCard(card);
+    }
+  }
+
+  function revert(element, card) {
+    if(element.card === card) {
+      delete element.card;
+      delete element.showCard;
     }
   }
 
@@ -34,6 +40,11 @@ define(["ceci"], function(Ceci) {
         if (mutation.addedNodes) {
           Array.prototype.slice.call(mutation.addedNodes).forEach(function(child) {
             extend(child, card);
+          });
+        }
+        else if(mutation.removedNodes) {
+          Array.prototype.slice.call(mutation.addedNodes).forEach(function(child) {
+            revert(child, card);
           });
         }
       });
