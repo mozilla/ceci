@@ -35,16 +35,56 @@ define(function() {
       console.log(element.id + " -> " + element.broadcastChannel);
     };
 
-    element.init = function() {
-      if (def.init) {
+    // init must always be a function, even if it does nothing
+    element.init = function () {};
+    if(def.init) {
+      element.init = function() {
         def.init.call(element);
+      };
+    }
+
+    // pass along the broadcast property
+    element.broadcast = def.broadcast;
+
+    // allow for event cleanup when removing an element from the DOM
+    element._flatheadListeners = [];
+
+    // add an event listener and record it got added by this element
+    element.setupEventListener = function(item, event, fn) {
+      item.addEventListener(event, fn);
+      element._flatheadListeners.push({
+        item: item,
+        event: event,
+        fn: fn
+      });
+    };
+
+    // remove a specific event listener associated with this element
+    element.discardEventListener = function(item, event, fn) {
+      var listeners = element._flatheadListeners;
+      for(var i=listeners.length-1, e; i>=0; i--) {
+        e = listeners[i]
+        if (e.item === item && e.event === event && e.fn === fn) {
+          item.removeEventListener(event, fn);
+          listeners.splice(i,1);
+          return;
+        }
       }
     };
 
-    if (def.broadcast) {
-      element.broadcast = def.broadcast;
-    };
+    // remove this element from the DOM, after cleaning up all
+    // outstanding event listeners
+    element.removeSafely = function() {
+      element._flatheadListeners.forEach(function(e) {
+        e.item.removeEventListener(e.event, e.fn);
+      });
+      element._flatheadListeners = [];
+      if (element.parentNode) {
+        element.parentNode.removeChild(element);
+      }
+    }
 
+    // run any plugins that hook into the constructor
     Ceci._plugins.constructor.forEach(function(plugin) {
       plugin(element, def);
     });
@@ -153,7 +193,7 @@ define(function() {
           fn = element[listener].listeningFunction;
           if(fn) {
             console.log("removing "+s.channel+"/"+listener+" pair");
-            document.removeEventListener(s.channel, fn);
+            element.discardEventListener(document, s.channel, fn);
           }
           // update the channel
           s.channel = channel;
@@ -161,7 +201,7 @@ define(function() {
           if(channel !== Ceci._emptyChannel) {
             fn = generateListener(element, s.channel, s.listener);
             console.log("adding "+s.channel+"/"+listener+" pair");
-            document.addEventListener(s.channel, fn);
+            element.setupEventListener(document, s.channel, fn);
           } else {
             fn = false;
           }
@@ -173,7 +213,7 @@ define(function() {
         fn = generateListener(element, channel, listener);
         element[listener].listeningFunction = fn;
         console.log("adding "+channel+"/"+listener+" pair");
-        document.addEventListener(channel, fn);
+        element.setupEventListener(document, channel, fn);
         element.subscriptions.push({
           listener: listener,
           channel: channel
@@ -200,7 +240,7 @@ define(function() {
     element.subscriptions.forEach(function (s) {
       var fn = generateListener(element, s.channel, s.listener);
       element[s.listener].listeningFunction = fn;
-      document.addEventListener(s.channel, fn);
+      element.setupEventListener(document, s.channel, fn);
     });
 
   }
