@@ -56,22 +56,28 @@ define(["ceci"], function(Ceci) {
 
     var bindAttributeChanging = function(target, attrName, fallthrough) {
       // value tracking as "real" value
-      var v = false,
-          get = function() { return v; },
-          set = function(v) {
-            target.setAttribute(attrName, v);
-          };
-      Object.defineProperty(target, attrName, { get: get, set: set });
+      var v = false;
+
+      Object.defineProperty(target, attrName, {
+        get: function() {
+          return v;
+        },
+        set: function(v) {
+          target.setAttribute(attrName, v);
+        }
+      });
 
       // feedback and mutation observing based on HTML attribute
       var handler = function(mutations) {
-            mutations.forEach(function(mutation) {
-              v = target.getAttribute(attrName);
-              fallthrough.call(target, v);
-            });
-          },
-          observer = new MutationObserver(handler),
-          config = { attributes: true, attributeFilter: [attrName] };
+        mutations.forEach(function(mutation) {
+          v = target.getAttribute(attrName);
+          fallthrough.call(target, v);
+        });
+      }
+
+      var observer = new MutationObserver(handler);
+      var config = { attributes: true, attributeFilter: [attrName] };
+
       observer.observe(target, config);
     };
 

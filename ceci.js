@@ -89,11 +89,6 @@ define(function() {
         element.parentNode.removeChild(element);
       }
     }
-
-    // run any plugins that hook into the constructor
-    Ceci._plugins.constructor.forEach(function(plugin) {
-      plugin(element, def);
-    });
   }
 
   Ceci._reserved = ['init', 'listeners', 'defaultListener'];
@@ -251,7 +246,7 @@ define(function() {
 
   }
 
-  Ceci.convertElement = function (element) {
+  Ceci.convertElement = function (element, callback) {
     var def = Ceci._components[element.localName],
         original = element.cloneNode(true);
 
@@ -267,11 +262,26 @@ define(function() {
       element.description = def.description;
     }
 
-    def.contructor.call(element, def.initParams | {});
+    var init = function(){
+      setupBroadcastLogic(element, original);
+      setupSubscriptionLogic(element, original);
 
-    setupBroadcastLogic(element, original);
-    setupSubscriptionLogic(element, original);
-    element.init();
+      // run any plugins that hook into the constructor
+      Ceci._plugins.constructor.forEach(function(plugin) {
+        plugin(element, def);
+      });
+
+      element.init();
+      callback(element);
+    };
+
+    def.constructor.call(element, function(){
+      init();
+    });
+
+    if (typeof element.init === 'function'){
+      init();
+    }
   };
 
   Ceci.processComponent = function (element) {
@@ -280,8 +290,10 @@ define(function() {
     var script = element.querySelector('script[type="text/ceci"]');
     var description = element.querySelector('description');
 
+    var generator = null;
+
     try{
-      var generator = new Function("Ceci", "return function() {" + script.innerHTML+ "}");
+      generator = new Function("Ceci", "return function(callback) {" + script.innerHTML+ "}");
     }
     catch(e){
       if (e.name === 'SyntaxError') {
@@ -292,11 +304,11 @@ define(function() {
         throw e;
       }
     }
-    var contructor = generator(Ceci);
+    var constructor = generator(Ceci);
 
     Ceci._components[name] = {
       template: template,
-      contructor: contructor,
+      constructor: constructor,
       description: description
     };
 
