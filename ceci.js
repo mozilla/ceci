@@ -268,6 +268,7 @@ define(function() {
     }
 
     var postConstructorHook = function() {
+      postConstructorHook.called = true;
       setupBroadcastLogic(element, original);
       setupSubscriptionLogic(element, original);
       element.init();
