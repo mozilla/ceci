@@ -26,13 +26,14 @@ define(["ceci"], function(Ceci) {
   }
 
   function revert(element, card) {
+    console.log("child removed: ", element);
     if(element.card === card) {
       delete element.card;
       delete element.showCard;
     }
   }
 
-  function observe(card) {
+  function observe(container, card) {
     var observer = new MutationObserver(function(mutations) {
       mutations.forEach(function(mutation) {
         if (mutation.type !== "childList")
@@ -49,11 +50,11 @@ define(["ceci"], function(Ceci) {
         }
       });
     });
-    observer.observe(card, { childList: true });
+    observer.observe(container, { childList: true });
 
     // also process any already existing cards
-    if(card.children.length > 0) {
-      var children = Array.prototype.slice.call(card.children);
+    if(container.children.length > 0) {
+      var children = Array.prototype.slice.call(container.children);
       children.forEach(function(child) {
         extend(child, card);
       });
@@ -62,11 +63,19 @@ define(["ceci"], function(Ceci) {
 
   function processCard(card) {
     card.id = cardClass + "-" + (cards.length+1);
-    observe(card);
+    ["fixed-top", "phone-canvas", "fixed-bottom"].forEach(function(segment) {
+      var div = document.createElement("div");
+      div.className = segment + " drophere";
+      card.appendChild(div);
+      observe(div, card);
+    });
+    card.showCard = function() {
+      showCard(card);
+    };
     cards.push(card);
   }
 
-  window.createCard = Ceci.createCard = function() {
+  Ceci.createCard = createCard = function() {
     var card = document.createElement("div");
     card.setAttribute("class", cardClass);
     processCard(card);
@@ -74,7 +83,7 @@ define(["ceci"], function(Ceci) {
   }
 
   function convertCards() {
-    var cardlist = document.querySelectorAll("div[class='"+cardClass+"']");
+    var cardlist = document.querySelectorAll("div."+cardClass);
     if (cardlist.length > 0) {
       cardlist = Array.prototype.slice.call(cardlist);
       cardlist.forEach(function(card) {
@@ -86,6 +95,8 @@ define(["ceci"], function(Ceci) {
   }
 
   return {
-    load: convertCards
+    load: convertCards,
+    createCard: createCard,
+    _cards: cards
   }
 });
