@@ -89,6 +89,11 @@ define(function() {
         element.parentNode.removeChild(element);
       }
     }
+
+    // run any plugins that hook into the constructor
+    Ceci._plugins.constructor.forEach(function(plugin) {
+      plugin(element, def);
+    });
   }
 
   Ceci._reserved = ['init', 'listeners', 'defaultListener'];
@@ -262,25 +267,23 @@ define(function() {
       element.description = def.description;
     }
 
-    var init = function(){
+    var postConstructorHook = function() {
+      postConstructorHook.called = true;
       setupBroadcastLogic(element, original);
       setupSubscriptionLogic(element, original);
-
-      // run any plugins that hook into the constructor
-      Ceci._plugins.constructor.forEach(function(plugin) {
-        plugin(element, def);
-      });
-
       element.init();
       callback(element);
     };
+    postConstructorHook.called = false;
 
-    def.constructor.call(element, function(){
-      init();
+    def.constructor.call(element, function() {
+      postConstructorHook();
     });
 
-    if (typeof element.init === 'function'){
-      init();
+    if (typeof element.init === 'function') {
+      if(!postConstructorHook.called) {
+        postConstructorHook();
+      }
     }
   };
 
