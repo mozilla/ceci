@@ -17,16 +17,13 @@ define(["ceci"], function(Ceci) {
   }
 
   function extend(element, card) {
-    console.log("child added: ", element);
     element.card = card;
     element.showCard = function() {
-      console.log("shifting focus to ", card);
       showCard(card);
     }
   }
 
   function revert(element, card) {
-    console.log("child removed: ", element);
     if(element.card === card) {
       delete element.card;
       delete element.showCard;
@@ -87,7 +84,6 @@ define(["ceci"], function(Ceci) {
     if (cardlist.length > 0) {
       cardlist = Array.prototype.slice.call(cardlist);
       cardlist.forEach(function(card) {
-        console.log("processing", card);
         processCard(card);
       })
       showCard(cards[0]);
