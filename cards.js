@@ -10,6 +10,9 @@ define(["ceci"], function(Ceci) {
     cards.forEach(function(c) {
       if (c === card) {
         c.style.display = "block";
+        var thumbId = c.id.replace('flathead-card-', 'flathead-card-thumb-');
+        $(".card").removeClass('selected');
+        $("#"+thumbId)[0].classList.add('selected');
       } else {
         c.style.display = "none";
       }
