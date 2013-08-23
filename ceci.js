@@ -103,7 +103,8 @@ define(function() {
   }
 
   Ceci._plugins = {
-    constructor: []
+    constructor: [],
+    onload: []
   }
 
   Ceci.registerCeciPlugin = function(eventName, plugin) {
