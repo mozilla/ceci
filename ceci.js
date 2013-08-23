@@ -113,6 +113,12 @@ define(function() {
   Ceci._defaultBroadcastChannel = "blue";
   Ceci._defaultListeningChannel = "blue";
   Ceci._emptyChannel = "false";
+  Object.defineProperty(Ceci, "emptyChannel", {
+    enumerable: false,
+    configurable: false,
+    writable: false,
+    value: Ceci._emptyChannel
+  });
 
   Ceci._components = {};
 
