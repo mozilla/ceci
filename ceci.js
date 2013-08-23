@@ -90,6 +90,18 @@ define(function() {
       }
     }
 
+    // lift stylesheets out into the page's <head> element
+    var styles = element.querySelectorAll("link[rel=stylesheet]"),
+        componentDefinition = Ceci._components[element.tagName.toLowerCase()];
+
+    Array.prototype.forEach.call(styles, function(link) {
+      link.parentNode.removeChild(link);
+      if(!componentDefinition.styleApplied) {
+        document.head.appendChild(link);
+        componentDefinition.styleApplied = true;
+      }
+    });
+
     // run any plugins that hook into the constructor
     Ceci._plugins.constructor.forEach(function(plugin) {
       plugin(element, def);
@@ -319,7 +331,8 @@ define(function() {
     Ceci._components[name] = {
       template: template,
       constructor: constructor,
-      description: description
+      description: description,
+      styleApplied: false
     };
 
     var existingElements = document.querySelectorAll(name);
