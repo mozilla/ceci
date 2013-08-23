@@ -31,7 +31,7 @@ define(["ceci"], function(Ceci) {
     // set relevant channel color, or remove if disabled
     var channelElement = element.querySelector(lsel);
 
-    if(channel === Ceci._emptyChannel) {
+    if(channel === Ceci.emptyChannel) {
       channelElement.parentNode.removeChild(channelElement);
     } else {
       channelElement.setAttribute("color",channel);
