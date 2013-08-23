@@ -1,0 +1,100 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+define(["jquery", "ceci", "ceci-cards", "ceci-ui", "jquery-ui"], function($, Ceci) {
+
+  /**
+   *
+   * Executes a callback with a new server-generated UUID
+   * If only a callback is specified (first arg), it's called with no context,
+   * otherwise the context is passed so one can reference "this"
+   *
+   * It's likely over-complicated, but I (wex) am writing code while tired,
+   * hence my sense of obligation to make excuses in multi-line comments.
+   *
+   */
+  function getUuid(contextOrCallback, callback) {
+    $.get('/store/uuid', function(data) {
+      if (!callback){
+        if (typeof contextOrCallback === 'function'){
+          callback = contextOrCallback;
+          contextOrCallback = null;
+        }
+      }
+
+      var context = contextOrCallback;
+
+      if (callback){
+        if (context){
+          callback.call(context, data);
+        }
+        else {
+          callback(data);
+        }
+      }
+      else{
+        throw "No callback specified for getUuid(); nothing to do!";
+      }
+    });
+  }
+
+  var App = function(params){
+
+    this.componentAddedCallback = typeof params.onComponentAdded === 'function' ? params.onComponentAdded : function(){};
+
+    this.container = params.container;
+
+    // generate a unique id that increments per tag ('moz-button-1', 'moz-button-2', etc.)  
+    this.tagids = {};
+    this.generateTagId = function (tagName) {
+      if (!this.tagids[tagName]){
+        this.tagids[tagName] = 0
+      }
+      return tagName + '-' + String(++this.tagids[tagName]);
+
+      // run any plugins to be run when the app is finished loading
+      Ceci._plugins.onload.forEach(function(plugin) {
+        plugin();
+      });
+    };
+
+    this.serialize = function () {
+      // this.container.
+    };
+
+    this.addComponent = function (tagName, callback) {
+      var component = document.createElement(tagName);
+      component.setAttribute('id', this.generateTagId(tagName));
+
+      var t = this;
+      callback(component);
+      Ceci.convertElement(component, function(){
+        t.componentAddedCallback(component);
+      });
+    };
+
+    var init = function(id){
+      this.id = id;
+
+      Ceci.load(function (components) {
+        if (typeof params.onload === 'function'){
+          params.onload(components);
+        }
+      });
+    };
+
+    if (params.id){
+      init(params.id);
+    }
+    else {
+      getUuid(this, init);
+    }
+  };
+
+  App.getUuid = getUuid;
+
+  Ceci.App = App;
+
+  return App;
+});
