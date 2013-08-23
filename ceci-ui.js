@@ -1,9 +1,9 @@
 define(["ceci"], function(Ceci) {
 
-  var broadcastBlock = document.createElement("div");
+  var broadcastBlock = document.createElement("broadcast");
   broadcastBlock.setAttribute("class","channel-visualisation broadcast-channels");
 
-  var subscriptionBlock = document.createElement("div");
+  var subscriptionBlock = document.createElement("listen");
   subscriptionBlock.setAttribute("class","channel-visualisation subscription-channels");
 
   var channelBlock = document.createElement("div");
@@ -18,11 +18,10 @@ define(["ceci"], function(Ceci) {
 
     // get the selector for the element whose color we need to change
     var sel = "." + type + "-channels",
-        lsel = sel + " .channel" + (listener ? '.' + listener : ''),
-        cblock;
+        lsel = sel + " .channel" + (listener ? '.' + listener : '');
 
     if(!element.querySelector(lsel)) {
-      cblock = channelBlock.cloneNode(true);
+      var cblock = channelBlock.cloneNode(true);
       if(listener) {
         cblock.classList.add(listener);
       }
