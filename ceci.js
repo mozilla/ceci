@@ -43,6 +43,9 @@ define(function() {
       if(element.broadcastChannel === Ceci.emptyChannel) return;
       var e = new CustomEvent(element.broadcastChannel, {bubbles: true, detail: data});
       element.dispatchEvent(e);
+      if(element.onOutputGenerated) {
+        element.onOutputGenerated(element.broadcastChannel, data);
+      }
       console.log(element.id + " -> " + element.broadcastChannel);
     };
 
@@ -216,7 +219,11 @@ define(function() {
       return function(e) {
         if(e.target.id !== element.id) {
           console.log(element.id + " <- " + channel + "/" + listener);
-          element[listener](e.detail, channel);
+          var data = e.detail;
+          element[listener](data, channel);
+          if(element.onInputReceived) {
+            element.onInputReceived(channel, data);
+          }
         }
       };
     };
