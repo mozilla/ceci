@@ -7,6 +7,8 @@ define(function() {
    */
   var Ceci = function (element, buildProperties) {
 
+
+
     Object.keys(buildProperties).filter(function (item) {
       return Ceci._reserved.indexOf(item) === -1;
     }).forEach(function (property) {
@@ -42,6 +44,11 @@ define(function() {
       if(element.broadcastChannel === Ceci.emptyChannel) return;
       var e = new CustomEvent(element.broadcastChannel, {bubbles: true, detail: data});
       element.dispatchEvent(e);
+
+      var bc = element.querySelector(".broadcast-channels .channel[color="+element.broadcastChannel+"]");
+      element.addIndicator(bc,"out");      
+      element.addLog(bc,"out",data);
+      
       console.log(element.id + " -> " + element.broadcastChannel);
     };
 
@@ -215,6 +222,9 @@ define(function() {
     var generateListener = function(element, channel, listener) {
       return function(e) {
         if(e.target.id !== element.id) {
+          var bc = element.querySelector(".subscription-channels .channel[color="+channel+"]")
+          element.addIndicator(bc,"in");      
+          element.addLog(bc,"in",e.detail);      
           console.log(element.id + " <- " + channel + "/" + listener);
           element[listener](e.detail, channel);
         }
