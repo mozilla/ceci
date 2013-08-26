@@ -14,7 +14,7 @@ define(function() {
       if (typeof entry === 'function') {
         element[property] = function() {
           entry.apply(element, arguments);
-        }
+        };
       }
     });
 
@@ -73,7 +73,7 @@ define(function() {
     element.discardEventListener = function(item, event, fn) {
       var listeners = element._flatheadListeners;
       for(var i=listeners.length-1, e; i>=0; i--) {
-        e = listeners[i]
+        e = listeners[i];
         if (e.item === item && e.event === event && e.fn === fn) {
           item.removeEventListener(event, fn);
           listeners.splice(i,1);
@@ -92,13 +92,13 @@ define(function() {
       if (element.parentNode) {
         element.parentNode.removeChild(element);
       }
-    }
+    };
 
     // run any plugins that hook into the constructor
     Ceci._plugins.constructor.forEach(function(plugin) {
       plugin(element, buildProperties);
     });
-  }
+  };
 
   // administrative values and objects
   Ceci._reserved = ['init', 'listeners', 'defaultListener'];
@@ -121,15 +121,14 @@ define(function() {
    */
   Ceci.registerCeciPlugin = function(eventName, plugin) {
     Ceci._plugins[eventName].push(plugin);
-  }
+  };
 
   /**
    * Plugins can add additional reserved words to Ceci's list
    */
   Ceci.reserveKeyword = function(keyword) {
     Ceci._reserved.push(keyword);
-  }
-
+  };
 
   /**
    * This function is only called once, when an element
@@ -218,8 +217,8 @@ define(function() {
           console.log(element.id + " <- " + channel + "/" + listener);
           element[listener](e.detail, channel);
         }
-      }
-    }
+      };
+    };
     // set properties on actual on-page element
     element.setSubscription = function(channel, listener) {
       var append = true, fn;
