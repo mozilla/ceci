@@ -52,11 +52,6 @@ define(["jquery", "ceci", "ceci-cards", "ceci-ui", "jquery-ui"], function($, Cec
         this.tagids[tagName] = 0;
       }
       return tagName + '-' + String(++this.tagids[tagName]);
-
-      // run any plugins to be run when the app is finished loading
-      Ceci._plugins.onload.forEach(function(plugin) {
-        plugin();
-      });
     };
 
     this.serialize = function () {
@@ -78,6 +73,11 @@ define(["jquery", "ceci", "ceci-cards", "ceci-ui", "jquery-ui"], function($, Cec
       this.id = id;
 
       Ceci.load(function (components) {
+        // run any plugins to be run when the app is finished loading
+        Ceci._plugins.onload.forEach(function(plugin) {
+          plugin();
+        });
+
         if (typeof params.onload === 'function'){
           params.onload(components);
         }
