@@ -3,6 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 define(["jquery", "ceci", "ceci-cards", "ceci-ui", "jquery-ui"], function($, Ceci) {
+  "use strict";
 
   /**
    *

@@ -1,4 +1,5 @@
 define(["ceci"], function(Ceci) {
+  "use strict";
 
   var broadcastBlock = document.createElement("broadcast");
   broadcastBlock.setAttribute("class","channel-visualisation broadcast-channels");
