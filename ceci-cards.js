@@ -3,6 +3,8 @@
  * (right now these are just divs of class "ceci-card").
  */
 define(["ceci"], function(Ceci) {
+  "use strict";
+
   var cardClass = "ceci-card",
       cards = [];
 

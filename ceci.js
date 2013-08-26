@@ -1,4 +1,5 @@
 define(function() {
+  "use strict";
 
   /**
    * Note: we're not using this as an object constructor,
