@@ -72,7 +72,7 @@ define(["ceci"], function(Ceci) {
           v = target.getAttribute(attrName);
           fallthrough.call(target, v);
         });
-      }
+      };
 
       var observer = new MutationObserver(handler);
       var config = { attributes: true, attributeFilter: [attrName] };
@@ -89,7 +89,7 @@ define(["ceci"], function(Ceci) {
         Object.keys(props).forEach(function(pkey) {
           if (pkey === "postset") return;
           eak[pkey] = props[pkey];
-        })
+        });
         elementAttributes[key] = eak;
       });
     }
@@ -109,7 +109,7 @@ define(["ceci"], function(Ceci) {
     element.onSubscriptionChannelChanged = function(channel, listener) {
       setChannelIndicator(element, 'subscription', channel, listener);
     };
-  }
+  };
 
   // register ourselves with Ceci
   Ceci.reserveKeyword("editable");
