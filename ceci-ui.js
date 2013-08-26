@@ -133,7 +133,7 @@ define(["jquery", "ceci"], function($, Ceci) {
       }
       var removeIndicator = function() {
         $(indicator).remove();
-      }
+      };
       setTimeout(removeIndicator, signalSpeed * 1000);
     };
 
