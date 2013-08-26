@@ -13,14 +13,14 @@ define(["ceci"], function(Ceci) {
       } else {
         c.style.display = "none";
       }
-    })
+    });
   }
 
   function extend(element, card) {
     element.card = card;
     element.showCard = function() {
       showCard(card);
-    }
+    };
   }
 
   function revert(element, card) {
@@ -77,7 +77,7 @@ define(["ceci"], function(Ceci) {
     card.setAttribute("class", cardClass);
     processCard(card);
     return card;
-  }
+  };
 
   function convertCards() {
     var cardlist = document.querySelectorAll("div."+cardClass);
@@ -85,7 +85,7 @@ define(["ceci"], function(Ceci) {
       cardlist = Array.prototype.slice.call(cardlist);
       cardlist.forEach(function(card) {
         processCard(card);
-      })
+      });
       showCard(cards[0]);
     }
   }
@@ -96,5 +96,5 @@ define(["ceci"], function(Ceci) {
     load: convertCards,
     createCard: createCard,
     _cards: cards
-  }
+  };
 });

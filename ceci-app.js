@@ -45,11 +45,11 @@ define(["jquery", "ceci", "ceci-cards", "ceci-ui", "jquery-ui"], function($, Cec
 
     this.container = params.container;
 
-    // generate a unique id that increments per tag ('moz-button-1', 'moz-button-2', etc.)  
+    // generate a unique id that increments per tag ('moz-button-1', 'moz-button-2', etc.)
     this.tagids = {};
     this.generateTagId = function (tagName) {
       if (!this.tagids[tagName]){
-        this.tagids[tagName] = 0
+        this.tagids[tagName] = 0;
       }
       return tagName + '-' + String(++this.tagids[tagName]);
 
