@@ -1,4 +1,4 @@
-define(["ceci"], function(Ceci) {
+define(["jquery","ceci"], function(Ceci) {
 
   var broadcastBlock = document.createElement("broadcast");
   broadcastBlock.setAttribute("class","channel-visualisation broadcast-channels");
