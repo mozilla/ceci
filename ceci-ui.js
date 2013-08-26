@@ -1,4 +1,4 @@
-define(["ceci"], function(Ceci) {
+define(["jquery", "ceci"], function($, Ceci) {
   "use strict";
 
   var broadcastBlock = document.createElement("broadcast");
@@ -7,8 +7,16 @@ define(["ceci"], function(Ceci) {
   var subscriptionBlock = document.createElement("listen");
   subscriptionBlock.setAttribute("class","channel-visualisation subscription-channels");
 
+  var channelDot = document.createElement("div");
+  channelDot.setAttribute("class", "color");
+
   var channelBlock = document.createElement("div");
   channelBlock.setAttribute("class", "channel");
+  channelBlock.appendChild(channelDot.cloneNode(true));
+
+  // channel visualisation animations
+  var signalSpeed = 1;
+  var bubbleDuration = 1;
 
   var setChannelIndicator = function(element, type, channel, listener) {
     // do we need to add the visualisation block?
@@ -95,6 +103,40 @@ define(["ceci"], function(Ceci) {
       });
     }
 
+    element.addDataBubble = function(element, direction, data) {
+      var timeout = (direction === "out" ? 0 : signalSpeed * 1000);
+      setTimeout(function() {
+        var bubble = document.createElement("div");
+        $(bubble).text(data).addClass("bubblepopup").addClass("bubblepop");
+        $(element).append(bubble);
+        setTimeout(function() {
+          $(bubble).remove();
+        }, bubbleDuration * 1000);
+      }, timeout);
+    };
+
+    element.addIndicator = function(element, direction) {
+      var indicator = document.createElement("div");
+      $(element).append(indicator);
+      $(indicator).addClass("indicator indicator-" + direction);
+      var signalSpeedCSS = signalSpeed + "s";
+      $(indicator).css({
+        "-webkit-animation-duration": signalSpeedCSS,
+        "-moz-animation-duration": signalSpeedCSS
+      });
+      if(direction == "out") {
+        var colors = $(element).find(".color"),
+            removePulse = function() {
+              $(colors).removeClass("pulse");
+            };
+        colors.addClass("pulse").bind("webkitAnimationEnd mozAnimationEnd", removePulse);
+      }
+      var removeIndicator = function() {
+        $(indicator).remove();
+      }
+      setTimeout(removeIndicator, signalSpeed * 1000);
+    };
+
     element.getEditableAttributes = function() {
       return editableAttributes;
     };
@@ -109,6 +151,18 @@ define(["ceci"], function(Ceci) {
 
     element.onSubscriptionChannelChanged = function(channel, listener) {
       setChannelIndicator(element, 'subscription', channel, listener);
+    };
+
+    element.onOutputGenerated = function(channel, output) {
+      var bc = element.querySelector(".broadcast-channels .channel[color="+channel+"]");
+      element.addIndicator(bc, "out");
+      element.addDataBubble(bc, "out", output);
+    };
+
+    element.onInputReceived = function(channel, input) {
+      var bc = element.querySelector(".subscription-channels .channel[color="+channel+"]");
+      element.addIndicator(bc, "in");
+      element.addDataBubble(bc, "in", input);
     };
   };
 
