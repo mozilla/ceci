@@ -1,4 +1,4 @@
-define(["ceci"], function(Ceci) {
+define(["jquery","ceci"], function($,Ceci) {
 
   var broadcastBlock = document.createElement("broadcast");
   broadcastBlock.setAttribute("class","channel-visualisation broadcast-channels");
@@ -7,7 +7,12 @@ define(["ceci"], function(Ceci) {
   subscriptionBlock.setAttribute("class","channel-visualisation subscription-channels");
 
   var channelBlock = document.createElement("div");
+  var channelDot = document.createElement("div");
+  
+
+  channelDot.setAttribute("class", "color");
   channelBlock.setAttribute("class", "channel");
+  channelBlock.appendChild(channelDot.cloneNode(true));
 
   var setChannelIndicator = function(element, type, channel, listener) {
     // do we need to add the visualisation block?
@@ -93,6 +98,57 @@ define(["ceci"], function(Ceci) {
         elementAttributes[key] = eak;
       });
     }
+    
+    // New channel visualisation animations
+    var signalSpeed = 1;
+    var logDuration = 1;
+
+    element.addLog = function(el,direction, data){
+
+      if(direction=="out"){
+        var timeout = 0;
+      } else {
+        var timeout = signalSpeed * 1000;
+      }
+
+      setTimeout(function(){
+      
+        var log = document.createElement("div");
+        $(log).text(data).addClass("logpopup").addClass("logpop");
+        $(el).append(log);
+      
+        setTimeout(function(){
+          log.remove();
+        },logDuration * 1000);
+        
+      }, timeout);
+      
+    }
+
+    element.addIndicator = function(el, direction){
+
+      var indicator = document.createElement("div");
+      $(el).append(indicator);
+      
+      $(indicator).addClass("indicator").addClass("indicator-" + direction);        
+      $(indicator).css("-webkit-animation-duration", signalSpeed + "s");
+      $(indicator).css("-moz-animation-duration", signalSpeed + "s");
+
+      if(direction == "out") {
+        $(el).find(".color").bind("webkitAnimationEnd",function(){
+          $(this).removeClass("pulse");
+        });
+        $(el).find(".color").bind("mozAnimationEnd",function(){
+          $(this).removeClass("pulse");
+        });
+        $(el).find(".color").addClass("pulse");
+      }
+
+      setTimeout(function(){
+        indicator.remove();
+      },signalSpeed * 1000);
+  
+    },
 
     element.getEditableAttributes = function() {
       return editableAttributes;
