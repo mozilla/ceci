@@ -74,7 +74,7 @@ define(["ceci"], function(Ceci) {
     cards.push(card);
   }
 
-  Ceci.createCard = createCard = function() {
+  var createCard = Ceci.createCard = function() {
     var card = document.createElement("div");
     card.setAttribute("class", cardClass);
     processCard(card);
