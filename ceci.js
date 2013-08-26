@@ -1,45 +1,41 @@
 define(function() {
 
-  /**
-   * Note: we're not using this as an object constructor,
-   * merely as the main entrypoint into Ceci for custom
-   * elements.
-   */
-  var Ceci = function (element, buildProperties) {
+  var Ceci = function (element, def) {
 
-    Object.keys(buildProperties).filter(function (item) {
+    Object.keys(def).filter(function (item) {
       return Ceci._reserved.indexOf(item) === -1;
-    }).forEach(function (property) {
-      var entry = buildProperties[property];
+    }).forEach(function (key) {
+      var entry = def[key];
       if (typeof entry === 'function') {
-        element[property] = function() {
+        element[key] = function() {
           entry.apply(element, arguments);
-        }
+        };
       }
     });
 
-    element.defaultListener = buildProperties.defaultListener;
+    element.defaultListener = def.defaultListener;
 
     element.subscriptionListeners = [];
 
-    if(buildProperties.listeners) {
-      Object.keys(buildProperties.listeners).forEach(function (listener) {
-        var entry = buildProperties.listeners[listener];
+    if(def.listeners) {
+      Object.keys(def.listeners).forEach(function (key) {
+        var entry = def.listeners[key];
         var entryType = typeof entry;
 
         if (entryType === 'function') {
-          element[listener] = function() {
+          element[key] = function() {
             entry.apply(element, arguments);
           };
-          element.subscriptionListeners.push(listener);
-        } else {
-          throw "Listener \"" + listener + "\" is not a function.";
+          element.subscriptionListeners.push(key);
+        }
+        else {
+          throw "Listener \"" + key + "\" is not a function.";
         }
       });
     }
 
     element.emit = function (data) {
-      if(element.broadcastChannel === Ceci.emptyChannel) return;
+      if(element.broadcastChannel === Ceci._emptyChannel) return;
       var e = new CustomEvent(element.broadcastChannel, {bubbles: true, detail: data});
       element.dispatchEvent(e);
       console.log(element.id + " -> " + element.broadcastChannel);
@@ -47,14 +43,14 @@ define(function() {
 
     // init must always be a function, even if it does nothing
     element.init = function () {};
-    if(buildProperties.init) {
+    if(def.init) {
       element.init = function() {
-        buildProperties.init.apply(element, arguments);
+        def.init.apply(element, arguments);
       };
     }
 
     // pass along the broadcast property
-    element.broadcast = buildProperties.broadcast;
+    element.broadcast = def.broadcast;
 
     // allow for event cleanup when removing an element from the DOM
     element._flatheadListeners = [];
@@ -73,7 +69,7 @@ define(function() {
     element.discardEventListener = function(item, event, fn) {
       var listeners = element._flatheadListeners;
       for(var i=listeners.length-1, e; i>=0; i--) {
-        e = listeners[i]
+        e = listeners[i];
         if (e.item === item && e.event === event && e.fn === fn) {
           item.removeEventListener(event, fn);
           listeners.splice(i,1);
@@ -92,50 +88,42 @@ define(function() {
       if (element.parentNode) {
         element.parentNode.removeChild(element);
       }
-    }
+    };
 
     // run any plugins that hook into the constructor
     Ceci._plugins.constructor.forEach(function(plugin) {
-      plugin(element, buildProperties);
+      plugin(element, def);
     });
-  }
+  };
 
-  // administrative values and objects
   Ceci._reserved = ['init', 'listeners', 'defaultListener'];
+
+  Ceci.reserveKeyword = function(keyword) {
+    Ceci._reserved.push(keyword);
+  };
+
   Ceci._plugins = {
     constructor: [],
     onload: []
   };
+
+  Ceci.registerCeciPlugin = function(eventName, plugin) {
+    Ceci._plugins[eventName].push(plugin);
+  };
+
   Ceci._defaultBroadcastChannel = "blue";
   Ceci._defaultListeningChannel = "blue";
+  Ceci._emptyChannel = "false";
   Object.defineProperty(Ceci, "emptyChannel", {
     enumerable: false,
     configurable: false,
     writable: false,
-    value: false
+    value: Ceci._emptyChannel
   });
+
   Ceci._components = {};
 
-  /**
-   * Register a plugin into Ceci
-   */
-  Ceci.registerCeciPlugin = function(eventName, plugin) {
-    Ceci._plugins[eventName].push(plugin);
-  }
-
-  /**
-   * Plugins can add additional reserved words to Ceci's list
-   */
-  Ceci.reserveKeyword = function(keyword) {
-    Ceci._reserved.push(keyword);
-  }
-
-
-  /**
-   * This function is only called once, when an element
-   * is instantiated, and returns the name of the channel
-   * the element should be listening to "by default".
-   */
+  // this function is only called once, when an element is instantiated.
   function getBroadcastChannel(element, original) {
     // get <broadcast> element information
     var broadcast = original.getElementsByTagName('broadcast')[0];
@@ -147,34 +135,10 @@ define(function() {
     }
     // if no broadcast channel is specified, but this is a broadcast
     // element, use the default channel. Otherwise, don't broadcast
-    return (element.broadcast ? Ceci._defaultBroadcastChannel : Ceci.emptyChannel);
+    return (element.broadcast ? Ceci._defaultBroadcastChannel : Ceci._emptyChannel);
   }
 
-  /**
-   * Set up the broadcasting behaviour for an element, based
-   * on the broadcasting properties it inherited from the
-   * <element> component master.
-   */
-  function setupBroadcastLogic(element, original) {
-    // get <broadcast> rules from the original declaration
-    element.broadcastChannel = getBroadcastChannel(element, original);
-    if(element.onBroadcastChannelChanged) {
-      element.onBroadcastChannelChanged(element.broadcastChannel);
-    }
-    // set property on actual on-page element
-    element.setBroadcastChannel = function(channel) {
-      element.broadcastChannel = channel;
-      if(element.onBroadcastChannelChanged) {
-        element.onBroadcastChannelChanged(channel);
-      }
-    };
-  }
-
-  /**
-   * This function is only called once, when an element is
-   * instantiated, and returns the list of channel subscriptions
-   * this element is supposed to have, "by default".
-   */
+  // this function is only called once, when an element is instantiated.
   function getSubscriptions(element, original) {
     var subscriptions = original.getElementsByTagName('listen');
     subscriptions = Array.prototype.slice.call(subscriptions);
@@ -190,20 +154,33 @@ define(function() {
     }
 
     subscriptions = subscriptions.map(function (e) {
+      var channel = e.getAttribute("on");
+      var listener = e.getAttribute("for");
+
       return {
-        listener: e.getAttribute("for"),
-        channel: e.getAttribute("on")
+        listener: listener,
+        channel: channel
       };
     });
 
     return subscriptions;
   }
 
-  /**
-   * Set up the listening behaviour for an element, based
-   * on the broadcasting properties it inherited from the
-   * <element> component master.
-   */
+  function setupBroadcastLogic(element, original) {
+    // get <broadcast> rules from the original declaration
+    element.broadcastChannel = getBroadcastChannel(element, original);
+    if(element.onBroadcastChannelChanged) {
+      element.onBroadcastChannelChanged(element.broadcastChannel);
+    }
+    // set property on actual on-page element
+    element.setBroadcastChannel = function(channel) {
+      element.broadcastChannel = channel;
+      if(element.onBroadcastChannelChanged) {
+        element.onBroadcastChannelChanged(channel);
+      }
+    };
+  }
+
   function setupSubscriptionLogic(element, original) {
     // get <listen> rules from the original declaration
     element.subscriptions = getSubscriptions(element, original);
@@ -218,8 +195,8 @@ define(function() {
           console.log(element.id + " <- " + channel + "/" + listener);
           element[listener](e.detail, channel);
         }
-      }
-    }
+      };
+    };
     // set properties on actual on-page element
     element.setSubscription = function(channel, listener) {
       var append = true, fn;
@@ -234,7 +211,7 @@ define(function() {
           // update the channel
           s.channel = channel;
           // bind the new event listening
-          if(channel !== Ceci.emptyChannel) {
+          if(channel !== Ceci._emptyChannel) {
             fn = generateListener(element, s.channel, s.listener);
             console.log("adding "+s.channel+"/"+listener+" pair");
             element.setupEventListener(document, s.channel, fn);
@@ -270,7 +247,7 @@ define(function() {
           return (s.listener !== listener);
         };
       }
-      element.subscriptions = element.subscriptions.filter(filter);
+      e.subscriptions = e.subscriptions.filter(filter);
     };
 
     element.subscriptions.forEach(function (s) {
@@ -278,61 +255,54 @@ define(function() {
       element[s.listener].listeningFunction = fn;
       element.setupEventListener(document, s.channel, fn);
     });
+
   }
 
-  /**
-   * Convert an element of tagname '...' based on the component
-   * description for the custom element '...'
-   */
-  Ceci.convertElement = function (instance, completedHandler) {
-    var componentDefinition = Ceci._components[instance.localName],
-        originalElement = instance.cloneNode(true);
+  Ceci.convertElement = function (element, callback) {
+    var def = Ceci._components[element.localName],
+        original = element.cloneNode(true);
 
-    // cache pre-conversion content
-    instance._innerHTML = instance.innerHTML;
-    instance._innerText = instance.innerText;
+    // real content
+    element._innerHTML = element.innerHTML;
+    element._innerText = element.innerText;
 
-    // apply the element's template
-    if (componentDefinition.template){
-      // TODO: should we do a <content></content> replacement?
-      instance.innerHTML = componentDefinition.template.innerHTML;
+    if (def.template){
+      element.innerHTML = def.template.innerHTML;
     }
 
-    // if the <element> had a description block, bind this
-    // to the instance as well, for future reference.
-    if (componentDefinition.description) {
-      instance.description = componentDefinition.description;
+    if (def.description) {
+      element.description = def.description;
     }
 
-    // set up the hook for post constructor callbacks
-    var finalize = function() {
-      finalize.called = true;
-      setupBroadcastLogic(instance, originalElement);
-      setupSubscriptionLogic(instance, originalElement);
-      instance.init();
-      completedHandler(instance);
+    var postConstructorHook = function() {
+      postConstructorHook.called = true;
+      setupBroadcastLogic(element, original);
+      setupSubscriptionLogic(element, original);
+      element.init();
+      callback(element);
     };
-    finalize.called = false;
+    postConstructorHook.called = false;
 
-    componentDefinition.constructor.call(instance, finalize);
+    def.constructor.call(element, function() {
+      postConstructorHook();
+    });
 
-    if (typeof instance.init === 'function') {
-      if(!finalize.called) {
-        finalize();
+    if (typeof element.init === 'function') {
+      if(!postConstructorHook.called) {
+        postConstructorHook();
       }
     }
   };
 
-  /**
-   * Process an individual <element> so that the element it
-   * defines can be used on a web page.
-   */
   Ceci.processComponent = function (element) {
-    var name = element.getAttribute('name'),
-        script = element.querySelector('script[type="text/ceci"]'),
-        generator;
+    var name = element.getAttribute('name');
+    var template = element.querySelector('template');
+    var script = element.querySelector('script[type="text/ceci"]');
+    var description = element.querySelector('description');
 
-    try {
+    var generator = null;
+
+    try{
       generator = new Function("Ceci", "return function(callback) {" + script.innerHTML+ "}");
     }
     catch(e){
@@ -344,71 +314,59 @@ define(function() {
         throw e;
       }
     }
-    var constructor = generator(Ceci),
-        description = element.querySelector('description'),
-        template = element.querySelector('template');
+    var constructor = generator(Ceci);
 
-    // Store this element's defining features
-    // so that we can reference them when an element
-    // with the corresponding tagname is user.
     Ceci._components[name] = {
+      template: template,
       constructor: constructor,
-      description: description,
-      template: template
+      description: description
     };
 
-    // After chronicling, also check whether there happen to
-    // already be elements with this tagname on the page that
-    // we need to immediately convert
     var existingElements = document.querySelectorAll(name);
     Array.prototype.forEach.call(existingElements, function (existingElement) {
       Ceci.convertElement(existingElement);
     });
   };
 
-  /**
-   * Find all <element> elements, and process them so that we
-   * can build instances on a page.
-   */
-  var processComponents = function(fragments, callOnComplete) {
-    if(fragments) {
-      var elements = fragments.querySelectorAll('element');
-      elements = Array.prototype.slice.call(elements);
-      elements.forEach(Ceci.processComponent);
-    }
+  function scrape (callOnComplete) {
+    var elements = document.querySelectorAll('element');
+    elements = Array.prototype.slice.call(elements);
+    elements.forEach(Ceci.processComponent);
     if (callOnComplete){
       callOnComplete(Ceci._components);
     }
-  };
+  }
 
-  /**
-   * Load all web components from <link rel="component">
-   */
   Ceci.load = function (callOnComplete) {
     var ceciLinks = document.querySelectorAll('link[rel=component][type="text/ceci"]');
 
-    if (ceciLinks.length === 0) {
-      return processComponents(false, callOnComplete);
-    }
-
-    var linksLeft = ceciLinks.length,
-        fragments = document.createElement("div"),
-        loadComponents = function (componentLink) {
-          var xhr = new XMLHttpRequest();
-          xhr.open('GET', componentLink.getAttribute('href'), true);
-          xhr.onload = function (e) {
-            var fragment = document.createElement('div');
-            fragment.innerHTML = xhr.response;
-            fragments.appendChild(fragment);
-            if (--linksLeft === 0) {
-              processComponents(fragments, callOnComplete);
-            }
-          };
-          xhr.send(null);
+    if (ceciLinks.length) {
+      var linksLeft = ceciLinks.length;
+      Array.prototype.forEach.call(ceciLinks, function (componentLink) {
+        var xhr = new XMLHttpRequest(),
+            docURL = componentLink.getAttribute('href');
+        xhr.open('GET', docURL ,true);
+        xhr.onload = function (e) {
+          var fragment = document.createElement('div');
+          fragment.setAttribute("style","display:none!important");
+          fragment.innerHTML = xhr.response;
+          if (document.body.firstChild) {
+            document.body.insertBefore(fragment, document.body.firstChild);
+          }
+          else {
+            document.body.appendChild(fragment);
+          }
+          if (--linksLeft === 0) {
+            scrape(callOnComplete);
+          }
         };
-    Array.prototype.forEach.call(ceciLinks, loadComponents);
+        xhr.send(null);
+      });
+    }
+    else {
+      scrape(callOnComplete);
+    }
   };
 
-  // and lastly, an AMD module return
   return Ceci;
 });
