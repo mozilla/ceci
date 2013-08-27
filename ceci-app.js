@@ -100,7 +100,7 @@ define(["jquery", "ceci", "ceci-cards", "ceci-ui", "jquery-ui"], function($, Cec
 
   App.addLoadListener = function(listener) {
     loadlisteners.push(listener);
-  }
+  };
 
   App.getUuid = getUuid;
 
