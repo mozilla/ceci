@@ -94,7 +94,7 @@ define(["jquery", "ceci"], function($, Ceci) {
         var props = def.editable[key];
         bindAttributeChanging(element, key, props.postset);
         editableAttributes.push(key);
-        eak = {};
+        var eak = {};
         Object.keys(props).forEach(function(pkey) {
           if (pkey === "postset") return;
           eak[pkey] = props[pkey];
