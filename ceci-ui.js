@@ -82,16 +82,11 @@ define(["ceci"], function(Ceci) {
     };
 
     if (def.editable) {
-      Object.keys(def.editable).forEach(function (key) {
-        var props = def.editable[key];
-        bindAttributeChanging(element, key, props.postset);
-        editableAttributes.push(key);
-        eak = {};
-        Object.keys(props).forEach(function(pkey) {
-          if (pkey === "postset") return;
-          eak[pkey] = props[pkey];
-        });
-        elementAttributes[key] = eak;
+      Object.keys(def.editable).forEach(function (attributeName) {
+        var properties = def.editable[attributeName];
+        bindAttributeChanging(element, attributeName, properties.postset);
+        editableAttributes.push(attributeName);
+        elementAttributes[attributeName] = properties;
       });
     }
 
