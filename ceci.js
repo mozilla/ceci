@@ -309,7 +309,9 @@ define(function() {
       setupBroadcastLogic(instance, originalElement);
       setupSubscriptionLogic(instance, originalElement);
       instance.init();
-      completedHandler(instance);
+      if(completedHandler) {
+        completedHandler(instance);
+      }
     };
     finalize.called = false;
 

@@ -39,7 +39,9 @@ define(["jquery", "ceci", "ceci-cards", "ceci-ui", "jquery-ui"], function($, Cec
     });
   }
 
-  var App = function(params){
+  var loadlisteners = [];
+
+  var App = function(params) {
 
     this.componentAddedCallback = typeof params.onComponentAdded === 'function' ? params.onComponentAdded : function(){};
 
@@ -81,6 +83,10 @@ define(["jquery", "ceci", "ceci-cards", "ceci-ui", "jquery-ui"], function($, Cec
         if (typeof params.onload === 'function'){
           params.onload(components);
         }
+
+        loadlisteners.forEach(function(listener) {
+          listener(components);
+        });
       });
     };
 
@@ -91,6 +97,10 @@ define(["jquery", "ceci", "ceci-cards", "ceci-ui", "jquery-ui"], function($, Cec
       getUuid(this, init);
     }
   };
+
+  App.addLoadListener = function(listener) {
+    loadlisteners.push(listener);
+  }
 
   App.getUuid = getUuid;
 
