@@ -1,13 +1,15 @@
 define(function() {
   "use strict";
 
+  // tracking auto-generated IDs
+  var counts = {};
+
   /**
    * Note: we're not using this as an object constructor,
    * merely as the main entrypoint into Ceci for custom
    * elements.
    */
   var Ceci = function (element, buildProperties) {
-
     Object.keys(buildProperties).filter(function (item) {
       return Ceci._reserved.indexOf(item) === -1;
     }).forEach(function (property) {
@@ -299,6 +301,12 @@ define(function() {
     var componentDefinition = Ceci._components[instance.localName],
         originalElement = instance.cloneNode(true);
 
+    // does this instance need an id?
+    if(!instance.id) {
+      var ln = instance.localName.toLowerCase();
+      instance.id = ln + "-" + counts[ln]++;
+    }
+
     // cache pre-conversion content
     instance._innerHTML = instance.innerHTML;
     instance._innerText = instance.innerText;
@@ -344,6 +352,11 @@ define(function() {
     var name = element.getAttribute('name'),
         script = element.querySelector('script[type="text/ceci"]'),
         generator;
+
+    var localName = element.getAttribute("name").toLowerCase();
+    if(!counts[localName]) {
+      counts[localName] = 0;
+    }
 
     try {
       generator = new Function("Ceci", "return function(callback) {" + script.innerHTML+ "}");
