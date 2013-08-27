@@ -233,6 +233,7 @@ define(function() {
     };
     // set properties on actual on-page element
     element.setSubscription = function(channel, listener) {
+      console.log(channel, listener);
       var append = true, fn;
       element.subscriptions.forEach(function(s) {
         if(s.listener === listener) {

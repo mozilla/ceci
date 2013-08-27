@@ -8,7 +8,7 @@ define(["jquery", "ceci"], function($, Ceci) {
   subscriptionBlock.setAttribute("class","channel-visualisation subscription-channels");
 
   var channelDot = document.createElement("div");
-  channelDot.setAttribute("class", "color");
+  channelDot.setAttribute("class", "color dot");
 
   var channelBlock = document.createElement("div");
   channelBlock.setAttribute("class", "channel");
@@ -35,16 +35,13 @@ define(["jquery", "ceci"], function($, Ceci) {
       if(listener) {
         cblock.classList.add(listener);
       }
-      cblock.addEventListener("click", function() {
-        console.log(element);
-      });
       element.querySelector(sel).appendChild(cblock);
     }
 
     // set relevant channel color, or remove if disabled
     var channelElement = cblock || element.querySelector(lsel);
     channelElement.setAttribute("color",channel);
-    channelElement.setAttribute("title", listener);
+    channelElement.setAttribute("title", listener ?  listener : "broadcast channel");
   };
 
   var CeciUI = function(element, def) {
