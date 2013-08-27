@@ -27,35 +27,24 @@ define(["jquery", "ceci"], function($, Ceci) {
 
     // get the selector for the element whose color we need to change
     var sel = "." + type + "-channels",
-        lsel = sel + " .channel" + (listener ? '.' + listener : '');
+        lsel = sel + " .channel" + (listener ? '.' + listener : ''),
+        cblock;
 
     if(!element.querySelector(lsel)) {
-      var cblock = channelBlock.cloneNode(true);
+      cblock = channelBlock.cloneNode(true);
       if(listener) {
         cblock.classList.add(listener);
       }
+      cblock.addEventListener("click", function() {
+        console.log(element);
+      });
       element.querySelector(sel).appendChild(cblock);
     }
 
     // set relevant channel color, or remove if disabled
-    var channelElement = element.querySelector(lsel);
-
-    if(channel === Ceci.emptyChannel) {
-      channelElement.parentNode.removeChild(channelElement);
-    } else {
-      channelElement.setAttribute("color",channel);
-    }
-
-    // Hide all but the first indicator for this particular color
-    // We only want to show one indicator per color
-    sel += " .channel[color="+channel+"]";
-    var indicators  = element.querySelectorAll(sel);
-    if(indicators.length > 0) {
-      indicators[0].style.display = "block";
-      for(var i=1; i<indicators.length; i++) {
-        indicators.item(i).style.display = "none";
-      }
-    }
+    var channelElement = cblock || element.querySelector(lsel);
+    channelElement.setAttribute("color",channel);
+    channelElement.setAttribute("title", listener);
   };
 
   var CeciUI = function(element, def) {

@@ -116,7 +116,7 @@ define(function() {
     enumerable: false,
     configurable: false,
     writable: false,
-    value: false
+    value: "false"
   });
   Ceci._components = {};
 
@@ -179,24 +179,28 @@ define(function() {
    * this element is supposed to have, "by default".
    */
   function getSubscriptions(element, original) {
-    var subscriptions = original.getElementsByTagName('listen');
-    subscriptions = Array.prototype.slice.call(subscriptions);
+    var listenElements = original.getElementsByTagName('listen');
+    listenElements = Array.prototype.slice.call(listenElements);
 
-    if(subscriptions.length === 0) {
-      if(!element.defaultListener) {
-        return [];
-      }
-      return [{
-        listener: element.defaultListener,
-        channel: Ceci._defaultListeningChannel
-      }];
-    }
-
-    subscriptions = subscriptions.map(function (e) {
+    var predefinedListeners = [];
+    var subscriptions = listenElements.map(function (e) {
+      predefinedListeners.push(e.getAttribute("for"));
       return {
         listener: e.getAttribute("for"),
         channel: e.getAttribute("on")
       };
+    });
+
+    element.subscriptionListeners.forEach(function(listener) {
+      if(predefinedListeners.indexOf(listener) !== -1) return;
+      var subscription = {
+        channel: Ceci.emptyChannel,
+        listener: listener
+      };
+      if(listener === element.defaultListener) {
+        subscription.channel = Ceci._defaultListeningChannel;
+      }
+      subscriptions.push(subscription);
     });
 
     return subscriptions;
