@@ -19,6 +19,7 @@ define(["ceci"], function(Ceci) {
   }
 
   function extend(element, card) {
+    card.elements.push(element);
     element.card = card;
     element.showCard = function() {
       showCard(card);
@@ -26,6 +27,7 @@ define(["ceci"], function(Ceci) {
   }
 
   function revert(element, card) {
+    card.elements.splice(card.elements.indexOf(element),1);
     if(element.card === card) {
       delete element.card;
       delete element.showCard;
@@ -61,7 +63,13 @@ define(["ceci"], function(Ceci) {
   }
 
   function processCard(card) {
-    card.id = cardClass + "-" + (cards.length+1);
+    card.elements = [];
+    if(card.children) {
+      Array.prototype.slice.call(card.children).forEach(function(child) {
+        extend(child, card);
+      });
+    }
+    card.id = card.id || cardClass + "-" + (cards.length+1);
     ["fixed-top", "phone-canvas", "fixed-bottom"].forEach(function(segment) {
       var div = document.createElement("div");
       div.className = segment + " drophere";
@@ -71,8 +79,34 @@ define(["ceci"], function(Ceci) {
     card.showCard = function() {
       showCard(card);
     };
+    card.describe = function() {
+      return {
+        id: card.id,
+        elements: card.elements.map(function(e) {
+          return e.describe();
+        })
+      };
+    };
     cards.push(card);
   }
+
+  // extend rehydration function for card rehydrating
+  (function() {
+    var oldFn = Ceci.rehydrate;
+    Ceci.rehydrate = function(description) {
+      console.log(description.elements);
+      var elements = description.elements.map(function(desc) {
+        return oldFn(desc);
+      });
+      var card = document.createElement("div");
+      card.setAttribute("class", "ceci-card");
+      card.id = description.id;
+      elements.forEach(function(e) {
+        card.appendChild(e);
+      });
+      return card;
+    };
+  }());
 
   var createCard = Ceci.createCard = function() {
     var card = document.createElement("div");
@@ -86,7 +120,9 @@ define(["ceci"], function(Ceci) {
     if (cardlist.length > 0) {
       cardlist = Array.prototype.slice.call(cardlist);
       cardlist.forEach(function(card) {
-        processCard(card);
+        if(!card.showCard) {
+          processCard(card);
+        }
       });
       showCard(cards[0]);
     }
