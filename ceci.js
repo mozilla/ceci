@@ -377,12 +377,20 @@ define(function() {
       instance.description = componentDefinition.description;
     }
 
+    var t = this;
+
     // set up the hook for post constructor callbacks
     var finalize = function() {
       finalize.called = true;
       setupBroadcastLogic(instance, originalElement);
       setupSubscriptionLogic(instance, originalElement);
-      instance.init();
+
+      /*
+       * "t" has been set up to be either an instance of Ceci.App
+       * or something we don't care about. It's a bit hacky, but
+       * if the context has an id, we use it.
+       */
+      instance.init.call(instance, {appId: t.id ? t.id : null});
       if(completedHandler) {
         completedHandler(instance);
       }
