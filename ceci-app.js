@@ -72,17 +72,22 @@ define(["jquery", "ceci", "ceci-cards", "ceci-ui", "jquery-ui"], function($, Cec
       });
     };
 
-    var init = function(id){
-      this.id = id;
 
-      Ceci.load(function (components) {
+
+    var init = function(id){
+
+      this.id = id;
+      var t = this;
+
+      Ceci.load.call(t, function (components) {
         // run any plugins to be run when the app is finished loading
         Ceci._plugins.onload.forEach(function(plugin) {
           plugin();
         });
 
+
         if (typeof params.onload === 'function'){
-          params.onload(components);
+          params.onload.call(t, components);
         }
 
         loadlisteners.forEach(function(listener) {
