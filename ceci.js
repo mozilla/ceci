@@ -456,6 +456,11 @@ define(function() {
       elements = Array.prototype.slice.call(elements);
       elements.forEach(Ceci.processComponent);
     }
+
+    Ceci._plugins.onload.forEach(function(fn) {
+      fn(Ceci._components);
+    });
+
     if (callOnComplete){
       callOnComplete(Ceci._components);
     }
