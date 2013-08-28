@@ -352,7 +352,6 @@ define(function() {
    * description for the custom element '...'
    */
   Ceci.convertElement = function (instance, completedHandler) {
-
     var componentDefinition = Ceci._components[instance.localName],
         originalElement = instance.cloneNode(true);
 
@@ -383,13 +382,7 @@ define(function() {
       finalize.called = true;
       setupBroadcastLogic(instance, originalElement);
       setupSubscriptionLogic(instance, originalElement);
-
-      /*
-       * "this" has been set up to be either an instance of Ceci.App
-       * or something we don't care about. It's a bit hacky, but
-       * if the context has an id, we use it.
-       */
-      instance.init.call(instance, {appId: this.id});
+      instance.init();
       if(completedHandler) {
         completedHandler(instance);
       }
@@ -400,7 +393,7 @@ define(function() {
 
     if (typeof instance.init === 'function') {
       if(!finalize.called) {
-        finalize.call(this);
+        finalize();
       }
     }
   };
@@ -449,7 +442,7 @@ define(function() {
     // we need to immediately convert
     var existingElements = document.querySelectorAll(name);
     Array.prototype.forEach.call(existingElements, function (existingElement) {
-      Ceci.convertElement.call(this, existingElement);
+      Ceci.convertElement(existingElement);
     });
   };
 
@@ -480,7 +473,7 @@ define(function() {
     var ceciLinks = document.querySelectorAll('link[rel=component][type="text/ceci"]');
 
     if (ceciLinks.length === 0) {
-      return processComponents.call(this, false, callOnComplete);
+      return processComponents(false, callOnComplete);
     }
 
     var linksLeft = ceciLinks.length,
@@ -493,7 +486,7 @@ define(function() {
             fragment.innerHTML = xhr.response;
             fragments.appendChild(fragment);
             if (--linksLeft === 0) {
-              processComponents.call(this, fragments, callOnComplete);
+              processComponents(fragments, callOnComplete);
             }
           };
           xhr.send(null);

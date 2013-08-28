@@ -67,7 +67,7 @@ define(["jquery", "ceci", "ceci-cards", "ceci-ui", "jquery-ui"], function($, Cec
 
       var t = this;
       callback(component);
-      Ceci.convertElement.call(this, component, function(){
+      Ceci.convertElement(component, function(){
         t.componentAddedCallback(component);
       });
     };
