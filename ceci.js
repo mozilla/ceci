@@ -21,6 +21,13 @@ define(function() {
       }
     });
 
+    if(buildProperties.editable) {
+      element.editableAttributes = [];
+      Object.keys(buildProperties.editable).forEach(function(attribute) {
+        element.editableAttributes.push(attribute);
+      });
+    }
+
     element.defaultListener = buildProperties.defaultListener;
 
     element.subscriptionListeners = [];
@@ -98,6 +105,10 @@ define(function() {
       if (element.parentNode) {
         element.parentNode.removeChild(element);
       }
+    };
+
+    element.describe = function() {
+      return Ceci.dehydrate(element);
     };
 
     // run any plugins that hook into the constructor
@@ -293,6 +304,49 @@ define(function() {
     });
   }
 
+  // describe an element as a terse JSON object
+  Ceci.dehydrate = function(element) {
+    return {
+      tagname: element.localName,
+      id: element.id,
+      broadcast: element.broadcastChannel,
+      listen: element.subscriptions.slice(),
+      attributes: (function() {
+        if (!element.editableAttributes) return [];
+        return element.editableAttributes.map(function(attribute) {
+          var value = element.getAttribute(attribute);
+          if(!value) return false;
+          return {
+            name: attribute,
+            value: value
+          };
+        }).filter(function(v) { return !!v; });
+      }())
+    };
+  };
+
+  /**
+   * Converts a JSON object into a regular object. For converting.
+   */
+  Ceci.rehydrate = function(description) {
+    var element = document.createElement(description.tagname);
+    element.id = description.id;
+    var content = "";
+    if(description.broadcast.channel !== Ceci.emptyChannel) {
+      content += '<broadcast on="'+description.broadcast+'"></broadcast>\n';
+    }
+    description.listen.forEach(function(listen) {
+      if(listen.channel !== Ceci.emptyChannel) {
+        content += '<listen on="'+listen.channel+'" for="'+listen.listener+'"></listne>\n';
+      }
+    });
+    element.innerHTML = content;
+    description.attributes.forEach(function(item) {
+      element.setAttribute(item.name, item.value);
+    });
+    return element;
+  };
+
   /**
    * Convert an element of tagname '...' based on the component
    * description for the custom element '...'
@@ -355,7 +409,7 @@ define(function() {
 
     var localName = element.getAttribute("name").toLowerCase();
     if(!counts[localName]) {
-      counts[localName] = 0;
+      counts[localName] = 1;
     }
 
     try {
