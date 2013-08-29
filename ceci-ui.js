@@ -65,7 +65,9 @@ define(["jquery", "ceci"], function($, Ceci) {
       var handler = function(mutations) {
         mutations.forEach(function(mutation) {
           v = target.getAttribute(attrName);
-          fallthrough.call(target, v);
+          if (fallthrough) {
+            fallthrough.call(target, v);
+          }
         });
       };
 
