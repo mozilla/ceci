@@ -48,7 +48,12 @@ define(function() {
       });
     }
 
+    if(buildProperties.endpoint) {
+      element.endpoint = true;
+    }
+
     element.emit = function (data) {
+      if(element.endpoint) return;
       if(element.broadcastChannel === Ceci.emptyChannel) return;
       var e = new CustomEvent(element.broadcastChannel, {bubbles: true, detail: data});
       element.dispatchEvent(e);
