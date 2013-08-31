@@ -16,7 +16,7 @@ define(function() {
       var entry = buildProperties[property];
       if (typeof entry === 'function') {
         element[property] = function() {
-          entry.apply(element, arguments);
+          return entry.apply(element, arguments);
         };
       }
     });
@@ -356,9 +356,10 @@ define(function() {
    * Convert an element of tagname '...' based on the component
    * description for the custom element '...'
    */
-  Ceci.convertElement = function (instance, completedHandler) {
+  Ceci.convertElement = function (instance, completedHandler, avoidHookups) {
     var componentDefinition = Ceci._components[instance.localName],
         originalElement = instance.cloneNode(true);
+    avoidHookups = avoidHookups || false;
 
     // does this instance need an id?
     if(!instance.id) {
@@ -387,8 +388,10 @@ define(function() {
     // set up the hook for post constructor callbacks
     var finalize = function() {
       finalize.called = true;
-      setupBroadcastLogic(instance, originalElement);
-      setupSubscriptionLogic(instance, originalElement);
+      if (!avoidHookups) {
+        setupBroadcastLogic(instance, originalElement);
+        setupSubscriptionLogic(instance, originalElement);
+      }
 
       /*
        * "t" has been set up to be either an instance of Ceci.App
