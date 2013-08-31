@@ -128,7 +128,7 @@ define(["jquery", "ceci"], function($, Ceci) {
             removePulse = function() {
               $(colors).removeClass("pulse");
             };
-        colors.addClass("pulse").bind("webkitAnimationEnd mozAnimationEnd", removePulse);
+        colors.addClass("pulse").bind("webkitAnimationEnd animationend", removePulse);
       }
       var removeIndicator = function() {
         $(indicator).remove();
