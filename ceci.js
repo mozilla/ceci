@@ -52,10 +52,13 @@ define(function() {
       element.endpoint = true;
     }
 
-    element.emit = function (data) {
+    element.emit = function (data, extra) {
       if(element.endpoint) return;
       if(element.broadcastChannel === Ceci.emptyChannel) return;
-      var e = new CustomEvent(element.broadcastChannel, {bubbles: true, detail: data});
+      var e = new CustomEvent(element.broadcastChannel, {bubbles: true, detail: {
+        data: data,
+        extra: extra
+      }});
       element.dispatchEvent(e);
       if(element.onOutputGenerated) {
         element.onOutputGenerated(element.broadcastChannel, data);
@@ -241,8 +244,10 @@ define(function() {
       return function(e) {
         if(e.target.id !== element.id) {
           console.log(element.id + " <- " + channel + "/" + listener);
-          var data = e.detail;
-          element[listener](data, channel);
+          var data = e.detail.data;
+          var extra = e.detail.extra;
+          var eventSource = e.target;
+          element[listener](data, channel, extra, eventSource);
           if(element.onInputReceived) {
             element.onInputReceived(channel, data);
           }
