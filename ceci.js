@@ -48,22 +48,44 @@ define(function() {
       });
     }
 
-    if(buildProperties.endpoint) {
-      element.endpoint = true;
+    element.broadcastChannels = {};
+    if(buildProperties.broadcast) {
+      var bc = element.broadcastChannels,
+          dc = buildProperties.defaultBroadcast;
+      buildProperties.broadcast.forEach(function(sender) {
+        // channel color
+        bc[sender] = (dc && dc === sender ? Ceci._defaultBroadcastChannel : Ceci.emptyChannel);
+        // send function
+        element[sender] = function() {
+          var args = [sender].concat(Array.prototype.slice.call(arguments));
+          this.emit.apply(this, args);
+        };
+      });
     }
 
-    element.emit = function (data, extra) {
-      if(element.endpoint) return;
-      if(element.broadcastChannel === Ceci.emptyChannel) return;
-      var e = new CustomEvent(element.broadcastChannel, {bubbles: true, detail: {
-        data: data,
-        extra: extra
-      }});
+    element.emit = function (sender, data) {
+      // unknown send function
+      if(!element.broadcastChannels[sender]) return;
+      // broadcast channel for this function is mute
+      if(element.broadcastChannels[sender] === Ceci.emptyChannel) return;
+      // send the data over the broadcast channel
+      var channel = element.broadcastChannels[sender];
+
+      var e = new CustomEvent(element.broadcastChannel, {
+        bubbles: true,
+        detail: {
+          data: data,
+          extra: extra
+        }
+      });
+
+      console.log("emit - " + sender + ", " + data + ", on " + channel);
+
       element.dispatchEvent(e);
       if(element.onOutputGenerated) {
-        element.onOutputGenerated(element.broadcastChannel, data);
+        element.onOutputGenerated(channel, data);
       }
-      console.log(element.id + " -> " + element.broadcastChannel);
+      console.log(element.id + " -> " + channel);
     };
 
     // init must always be a function, even if it does nothing
@@ -160,18 +182,15 @@ define(function() {
    * is instantiated, and returns the name of the channel
    * the element should be listening to "by default".
    */
-  function getBroadcastChannel(element, original) {
+  function getBroadcastChannels(element, original) {
     // get <broadcast> element information
-    var broadcast = original.getElementsByTagName('broadcast')[0];
-    if (broadcast){
+    var broadcast = original.getElementsByTagName('broadcast');
+    Array.prototype.slice.call(broadcast).forEach(function(element) {
       var channel = broadcast.getAttribute("on");
-      if (channel) {
-        return channel;
-      }
-    }
-    // if no broadcast channel is specified, but this is a broadcast
-    // element, use the default channel. Otherwise, don't broadcast
-    return (element.broadcast ? Ceci._defaultBroadcastChannel : Ceci.emptyChannel);
+      var sender = broadcast.getAttribute("for");
+      element.broadcastChannels[sender] = channel;
+    });
+    return element.broadcastChannels;
   }
 
   /**
@@ -181,15 +200,17 @@ define(function() {
    */
   function setupBroadcastLogic(element, original) {
     // get <broadcast> rules from the original declaration
-    element.broadcastChannel = getBroadcastChannel(element, original);
-    if(element.onBroadcastChannelChanged) {
-      element.onBroadcastChannelChanged(element.broadcastChannel);
-    }
-    // set property on actual on-page element
-    element.setBroadcastChannel = function(channel) {
-      element.broadcastChannel = channel;
+    var broadcastChannels = getBroadcastChannels(element, original);
+    Object.keys(broadcastChannels).forEach(function(sender) {
       if(element.onBroadcastChannelChanged) {
-        element.onBroadcastChannelChanged(channel);
+        element.onBroadcastChannelChanged(broadcastChannels[sender], sender);
+      }
+    });
+    // set property on actual on-page element
+    element.setBroadcastChannel = function(channel, sender) {
+      element.broadcastChannels[sender] = channel;
+      if(element.onBroadcastChannelChanged) {
+        element.onBroadcastChannelChanged(channel, sender);
       }
     };
   }
