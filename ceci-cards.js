@@ -94,7 +94,6 @@ define(["ceci"], function(Ceci) {
   (function() {
     var oldFn = Ceci.rehydrate;
     Ceci.rehydrate = function(description) {
-      console.log(description.elements);
       var elements = description.elements.map(function(desc) {
         return oldFn(desc);
       });

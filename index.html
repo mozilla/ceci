@@ -24,15 +24,15 @@
       </app-label>
 
       <app-counter id="counter-global">
-        <listen on="blue" for="increase">
-        <listen on="green" for="increase">
-          <broadcast on="red">
+        <listen on="blue" for="countUp">
+        <listen on="green" for="countUp">
+        <broadcast on="red">
       </app-counter>
     </div>
 
     <div class="ceci-card">
       <app-counter id="counter-green">
-        <listen on="green" for="increase">
+        <listen on="green" for="countUp">
       </app-counter>
 
       <app-test-documentation id="test-docs">
@@ -41,7 +41,7 @@
     <script src="//cdnjs.cloudflare.com/ajax/libs/require.js/2.1.8/require.min.js"></script>
     <script>
       document.addEventListener("DOMContentLoaded", function() {
-        require(["ceci", "ceci-ui", "ceci-cards"], function(Ceci, CeciUI, Cards) {
+        require(["ceci", "ceci-cards"], function(Ceci, Cards) {
           Ceci.load(Cards.load);
         });
       });
