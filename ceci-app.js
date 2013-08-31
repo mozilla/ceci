@@ -58,7 +58,25 @@ define(["jquery", "ceci", "ceci-cards", "ceci-ui", "jquery-ui"], function($, Cec
     };
 
     this.serialize = function () {
-      // this.container.
+      var manifest = {
+        cards: []
+      };
+
+      var cards = $(this.container).find('.ceci-card');
+
+      cards.each(function (index, card) {
+        var cardManifest = {
+          elements: []
+        };
+        manifest.cards.push(cardManifest);
+        var phoneCanvas = card.querySelector('.phone-canvas');
+        Array.prototype.forEach.call(phoneCanvas.children, function (child) {
+          if (child.localName.indexOf('app-') > -1 && typeof child.describe === 'function') {
+            cardManifest.elements.push(child.describe());
+          }
+        });
+      });
+      return manifest;
     };
 
     this.addComponent = function (tagName, callback) {
@@ -104,26 +122,6 @@ define(["jquery", "ceci", "ceci-cards", "ceci-ui", "jquery-ui"], function($, Cec
   };
 
   App.getUuid = getUuid;
-
-  App.createManifest = function () {
-    var manifest = {
-      cards: []
-    };
-    var cards = $('#flathead-app .ceci-card');
-    cards.each(function (index, card) {
-      var cardManifest = {
-        elements: []
-      };
-      manifest.cards.push(cardManifest);
-      var phoneCanvas = card.querySelector('.phone-canvas');
-      Array.prototype.forEach.call(phoneCanvas.children, function (child) {
-        if (child.localName.indexOf('app-') > -1 && typeof child.describe === 'function') {
-          cardManifest.elements.push(child.describe());
-        }
-      });
-    });
-    return manifest;
-  };
 
   Ceci.App = App;
 
