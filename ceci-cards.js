@@ -30,7 +30,7 @@ define(["ceci"], function(Ceci) {
   }
 
   function revert(element, card) {
-    card.elements.splice(card.elements.indexOf(element),1);
+    card.elements.splice(card.elements.indexOf(element), 1);
     if(element.card === card) {
       delete element.card;
       delete element.showCard;
@@ -142,7 +142,7 @@ define(["ceci"], function(Ceci) {
     if (Ceci.currentCard){
       callback(Ceci.currentCard);
     }
-  }
+  };
 
   return {
     onCardChange: onCardChange,
