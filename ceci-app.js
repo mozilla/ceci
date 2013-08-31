@@ -72,19 +72,15 @@ define(["jquery", "ceci", "ceci-cards", "ceci-ui", "jquery-ui"], function($, Cec
       });
     };
 
-
-
     var init = function(id){
-
-      this.id = id;
       var t = this;
+      this.id = id;
 
       Ceci.load.call(t, function (components) {
         // run any plugins to be run when the app is finished loading
         Ceci._plugins.onload.forEach(function(plugin) {
           plugin();
         });
-
 
         if (typeof params.onload === 'function'){
           params.onload.call(t, components);
@@ -98,8 +94,7 @@ define(["jquery", "ceci", "ceci-cards", "ceci-ui", "jquery-ui"], function($, Cec
 
     if (params.id){
       init(params.id);
-    }
-    else {
+    } else {
       getUuid(this, init);
     }
   };
@@ -109,6 +104,26 @@ define(["jquery", "ceci", "ceci-cards", "ceci-ui", "jquery-ui"], function($, Cec
   };
 
   App.getUuid = getUuid;
+
+  App.createManifest = function () {
+    var manifest = {
+      cards: []
+    };
+    var cards = $('#flathead-app .ceci-card');
+    cards.each(function (index, card) {
+      var cardManifest = {
+        elements: []
+      };
+      manifest.cards.push(cardManifest);
+      var phoneCanvas = card.querySelector('.phone-canvas');
+      Array.prototype.forEach.call(phoneCanvas.children, function (child) {
+        if (child.localName.indexOf('app-') > -1 && typeof child.describe === 'function') {
+          cardManifest.elements.push(child.describe());
+        }
+      });
+    });
+    return manifest;
+  };
 
   Ceci.App = App;
 
