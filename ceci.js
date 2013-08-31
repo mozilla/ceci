@@ -48,44 +48,22 @@ define(function() {
       });
     }
 
-    element.broadcastChannels = {};
-    if(buildProperties.broadcast) {
-      var bc = element.broadcastChannels,
-          dc = buildProperties.defaultBroadcast;
-      buildProperties.broadcast.forEach(function(sender) {
-        // channel color
-        bc[sender] = (dc && dc === sender ? Ceci._defaultBroadcastChannel : Ceci.emptyChannel);
-        // send function
-        element[sender] = function() {
-          var args = [sender].concat(Array.prototype.slice.call(arguments));
-          this.emit.apply(this, args);
-        };
-      });
+    if(buildProperties.endpoint) {
+      element.endpoint = true;
     }
 
-    element.emit = function (sender, data) {
-      // unknown send function
-      if(!element.broadcastChannels[sender]) return;
-      // broadcast channel for this function is mute
-      if(element.broadcastChannels[sender] === Ceci.emptyChannel) return;
-      // send the data over the broadcast channel
-      var channel = element.broadcastChannels[sender];
-
-      var e = new CustomEvent(element.broadcastChannel, {
-        bubbles: true,
-        detail: {
-          data: data,
-          extra: extra
-        }
-      });
-
-      console.log("emit - " + sender + ", " + data + ", on " + channel);
-
+    element.emit = function (data, extra) {
+      if(element.endpoint) return;
+      if(element.broadcastChannel === Ceci.emptyChannel) return;
+      var e = new CustomEvent(element.broadcastChannel, {bubbles: true, detail: {
+        data: data,
+        extra: extra
+      }});
       element.dispatchEvent(e);
       if(element.onOutputGenerated) {
-        element.onOutputGenerated(channel, data);
+        element.onOutputGenerated(element.broadcastChannel, data);
       }
-      console.log(element.id + " -> " + channel);
+      console.log(element.id + " -> " + element.broadcastChannel);
     };
 
     // init must always be a function, even if it does nothing
@@ -182,15 +160,18 @@ define(function() {
    * is instantiated, and returns the name of the channel
    * the element should be listening to "by default".
    */
-  function getBroadcastChannels(element, original) {
+  function getBroadcastChannel(element, original) {
     // get <broadcast> element information
-    var broadcast = original.getElementsByTagName('broadcast');
-    Array.prototype.slice.call(broadcast).forEach(function(element) {
+    var broadcast = original.getElementsByTagName('broadcast')[0];
+    if (broadcast){
       var channel = broadcast.getAttribute("on");
-      var sender = broadcast.getAttribute("for");
-      element.broadcastChannels[sender] = channel;
-    });
-    return element.broadcastChannels;
+      if (channel) {
+        return channel;
+      }
+    }
+    // if no broadcast channel is specified, but this is a broadcast
+    // element, use the default channel. Otherwise, don't broadcast
+    return (element.broadcast ? Ceci._defaultBroadcastChannel : Ceci.emptyChannel);
   }
 
   /**
@@ -200,17 +181,15 @@ define(function() {
    */
   function setupBroadcastLogic(element, original) {
     // get <broadcast> rules from the original declaration
-    var broadcastChannels = getBroadcastChannels(element, original);
-    Object.keys(broadcastChannels).forEach(function(sender) {
-      if(element.onBroadcastChannelChanged) {
-        element.onBroadcastChannelChanged(broadcastChannels[sender], sender);
-      }
-    });
+    element.broadcastChannel = getBroadcastChannel(element, original);
+    if(element.onBroadcastChannelChanged) {
+      element.onBroadcastChannelChanged(element.broadcastChannel);
+    }
     // set property on actual on-page element
-    element.setBroadcastChannel = function(channel, sender) {
-      element.broadcastChannels[sender] = channel;
+    element.setBroadcastChannel = function(channel) {
+      element.broadcastChannel = channel;
       if(element.onBroadcastChannelChanged) {
-        element.onBroadcastChannelChanged(channel, sender);
+        element.onBroadcastChannelChanged(channel);
       }
     };
   }
