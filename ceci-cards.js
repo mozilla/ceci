@@ -5,10 +5,12 @@
 define(["ceci"], function(Ceci) {
   "use strict";
 
-  var cardClass = "ceci-card",
-      cards = [];
+  var cardClass = "ceci-card";
+  var cards = [];
+  Ceci.currentCard = null;
 
   function showCard(card) {
+    Ceci.showCardCallback(card);
     cards.forEach(function(c) {
       if (c === card) {
         c.style.display = "block";
@@ -16,6 +18,7 @@ define(["ceci"], function(Ceci) {
         c.style.display = "none";
       }
     });
+    Ceci.currentCard = card;
   }
 
   function extend(element, card) {
@@ -99,7 +102,7 @@ define(["ceci"], function(Ceci) {
         return oldFn(desc);
       });
       var card = document.createElement("div");
-      card.setAttribute("class", "ceci-card");
+      card.setAttribute("class", cardClass);
       card.id = description.id;
       elements.forEach(function(e) {
         card.appendChild(e);
@@ -116,7 +119,7 @@ define(["ceci"], function(Ceci) {
   };
 
   function convertCards() {
-    var cardlist = document.querySelectorAll("div."+cardClass);
+    var cardlist = document.querySelectorAll("div." + cardClass);
     if (cardlist.length > 0) {
       cardlist = Array.prototype.slice.call(cardlist);
       cardlist.forEach(function(card) {
@@ -130,7 +133,19 @@ define(["ceci"], function(Ceci) {
 
   Ceci.registerCeciPlugin("onload", convertCards);
 
+  Ceci.showCardCallback = function(card){};
+
+  var onCardChange = Ceci.onCardChange = function (callback){
+    Ceci.showCardCallback = callback;
+
+    // call the card change if we've already done one before it's wired up
+    if (Ceci.currentCard){
+      callback(Ceci.currentCard);
+    }
+  }
+
   return {
+    onCardChange: onCardChange,
     load: convertCards,
     createCard: createCard,
     _cards: cards
