@@ -65,6 +65,7 @@ define(function() {
         data: data,
         extra: extra
       }});
+      Ceci.log(element, "sends '"+  data.toString() + "'' on "+ element.broadcastChannel + " channel", element.broadcastChannel);
       element.dispatchEvent(e);
       if(element.onOutputGenerated) {
         element.onOutputGenerated(element.broadcastChannel, data);
@@ -523,6 +524,24 @@ define(function() {
         };
     Array.prototype.forEach.call(ceciLinks, loadComponents);
   };
+
+  Ceci.log = function(element, message, channel, severity) {
+    if (!message) {
+      message = element;
+      element = null;
+    }
+    if (message.length > 200) message = message.slice(0,200) + '…';
+    var event = new CustomEvent('log',
+      {detail:
+        {speaker: element || null,
+         message: message || null,
+         channel: channel || null,
+         severity: severity || null}
+       });
+    document.dispatchEvent(event);
+  };
+
+  Ceci.LOG_WTF = "WTF";
 
   // and lastly, an AMD module return
   return Ceci;
