@@ -443,6 +443,8 @@ define(function() {
     catch(e){
       if (e.name === 'SyntaxError') {
         e.message += " in definition of component \"" + name + "\".";
+        console.log(e.message);
+        console.log(e.stack);
         throw e;
       }
       else {
