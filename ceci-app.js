@@ -65,22 +65,24 @@ define(["jquery", "ceci-cards", "jquery-ui"], function($, Ceci) {
       return tagName + '-' + String(++this.tagids[tagName]);
     };
 
-    this.serialize = function () {
+    var collectComponentsFromContainer = function(container) {
+      var elements = [];
+      Array.prototype.forEach.call(container.children, function (child) {
+        if (child.localName.indexOf('app-') > -1 && typeof child.describe === 'function') {
+          elements.push(child.describe());
+        }
+      });
+      return elements;
+    };
+
+    this.toJSON = function () {
       var manifest = {
         cards: []
       };
 
       var cards = $(this.container).find('.ceci-card');
 
-      function collectComponentsFromContainer (container) {
-        var elements = [];
-        Array.prototype.forEach.call(container.children, function (child) {
-          if (child.localName.indexOf('app-') > -1 && typeof child.describe === 'function') {
-            elements.push(child.describe());
-          }
-        });
-        return elements;
-      }
+
 
       cards.each(function (index, card) {
         manifest.cards.push({
@@ -89,8 +91,100 @@ define(["jquery", "ceci-cards", "jquery-ui"], function($, Ceci) {
           bottom: collectComponentsFromContainer(card.querySelector('.fixed-bottom'))
         });
       });
-
       return manifest;
+    };
+
+    /*
+     * Here we clone each card and go two levels down, then construct listeners
+     *  <div class="ceci-card">
+     *    <div class="fixed-top">
+     *      <app-* >...
+     *    </div>
+     *    <div class="fixed-bottom">
+     *      <app-* >...
+     *    </div>
+     *    <div class="phone-canvas">
+     *      <app-* >...
+     *    </div>
+     *  </div>
+     */
+    this.serialize = function(){
+      var doc = document.createElement('div');
+
+
+      var cleanAttributes = function(element, params){
+        params = params ? params : {};
+        var allowedAttributes = params.keep;
+        var reject = params.reject;
+        var rejectEvents = params.rejectEvents;
+        var rejectAll = false;
+
+        //default reject everything
+        if (typeof rejectEvents === 'undefinded' && typeof allowedAttributes === 'undefinded'){
+          rejectAll = true;
+        }
+
+        if (typeof reject === 'string'){
+          reject = [reject];
+        }
+
+        if (typeof allowedAttributes === 'string'){
+          allowedAttributes = [allowedAttributes];
+        }
+
+        if (reject){
+          reject.forEach(function(name){
+            element.removeAttribute(name);
+          });
+        }
+
+
+        Array.prototype.forEach.call(element.attributes, function(attr){
+          if (rejectAll){
+            element.removeAttribute(attr.name);
+          }
+          else{
+            // Reject all except for allowed attributes
+            if (allowedAttributes){
+              if (allowedAttributes.indexOf(attr.name) === -1){
+                element.removeAttribute(attr.name);
+              }
+            }
+            else{
+              // Or if allowed isn't set, reject /on.+/
+              if (rejectEvents){
+                if (attr.name.indexOf('on') == 0 && attr.name.length != 2){
+                  element.removeAttribute(attr.name);
+                }
+              }
+            }
+          }
+        });
+        return element;
+      };
+
+      // this actually means "do shallow"
+      var shallow = false;
+
+      Array.prototype.forEach.call(this.container.querySelectorAll('.ceci-card'), function(realCard){
+        var card = realCard.cloneNode(shallow);
+        cleanAttributes(card, {keep: 'class', reject: ['id', 'style']});
+        doc.appendChild(card);
+
+        Array.prototype.forEach.call(realCard.children, function(realSection){
+          var section = realSection.cloneNode(shallow);
+
+          cleanAttributes(section, {keep: 'class', reject: ['id', 'style']});
+          card.appendChild(section);
+
+          Array.prototype.forEach.call(realSection.children, function(component){
+            var component = Ceci.rehydrateComponent(component.describe());
+            section.appendChild(component);
+          });
+        });
+      });
+
+      return doc.innerHTML;
     };
 
     this.addComponent = function (tagName, callback) {
@@ -117,7 +211,7 @@ define(["jquery", "ceci-cards", "jquery-ui"], function($, Ceci) {
 
       Ceci.load.call(t, function (components) {
         Ceci.convertContainer(t.container, function (element){
-          element.setAttribute('id', t.generateTagId(name));
+          element.setAttribute('id', t.generateTagId(element.tagName.toLowerCase()));
           t.componentAddedCallback(element);
         });
 
