@@ -21,6 +21,10 @@ define(["ceci"], function(Ceci) {
     Ceci.currentCard = card;
   }
 
+  Ceci.elementWantsAttention = function(element) {
+    showCard(element.parentNode.parentNode);
+  };
+
   function extend(element, card) {
     card.elements.push(element);
     element.card = card;
