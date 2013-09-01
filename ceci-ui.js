@@ -15,13 +15,11 @@ define(["jquery", "ceci"], function($, Ceci) {
   broadcastMenuToggle.setAttribute("class", "channel-menu-toggle");
   broadcastBlock.appendChild(broadcastMenuToggle.cloneNode(true));
 
-
-
   var channelDot = document.createElement("div");
   channelDot.setAttribute("class", "color dot");
 
   var channelBlock = document.createElement("div");
-  
+
   channelBlock.setAttribute("class", "channel");
   channelBlock.appendChild(channelDot.cloneNode(true));
 
@@ -40,7 +38,7 @@ define(["jquery", "ceci"], function($, Ceci) {
     var sel = "." + type + "-channels",
         lsel = sel + " .channel" + (listener ? '.' + listener : ''),
         cblock;
-    
+
     if(!element.querySelector(lsel)) {
       cblock = channelBlock.cloneNode(true);
       if(listener) {
@@ -70,6 +68,7 @@ define(["jquery", "ceci"], function($, Ceci) {
           return v;
         },
         set: function(v) {
+          Ceci.fireChangeEvent();
           target.setAttribute(attrName, v);
         }
       });
@@ -148,10 +147,12 @@ define(["jquery", "ceci"], function($, Ceci) {
 
     element.onBroadcastChannelChanged = function(channel) {
       setChannelIndicator(element, 'broadcast', channel);
+      Ceci.fireChangeEvent();
     };
 
     element.onSubscriptionChannelChanged = function(channel, listener) {
       setChannelIndicator(element, 'subscription', channel, listener);
+      Ceci.fireChangeEvent();
     };
 
     element.onOutputGenerated = function(channel, output) {
@@ -179,6 +180,7 @@ define(["jquery", "ceci"], function($, Ceci) {
   // register ourselves with Ceci
   Ceci.reserveKeyword("editable");
   Ceci.registerCeciPlugin("constructor", CeciUI);
+
 
   // return this plugin, for good measure
   return CeciUI;
