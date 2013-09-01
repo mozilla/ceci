@@ -139,6 +139,7 @@ define(["jquery", "ceci"], function($, Ceci) {
           return v;
         },
         set: function(v) {
+          Ceci.fireChangeEvent();
           target.setAttribute(attrName, v);
         }
       });
@@ -228,6 +229,7 @@ define(["jquery", "ceci"], function($, Ceci) {
       if (oldChannel && oldChannel != "false" && oldChannel != "default") {
         --broadcastersPerChannel[oldChannel];
       }
+      Ceci.fireChangeEvent();
     };
 
     element.onSubscriptionChannelChanged = function(channel, listener, oldChannel) {
@@ -243,6 +245,7 @@ define(["jquery", "ceci"], function($, Ceci) {
         --listenersPerChannel[oldChannel];
       }
       setChannelIndicator(element, 'subscription', channel, listener);
+      Ceci.fireChangeEvent();
     };
 
     element.onOutputGenerated = function(channel, output) {
@@ -252,9 +255,11 @@ define(["jquery", "ceci"], function($, Ceci) {
     };
 
     element.onInputReceived = function(channel, input) {
-      var bc = element.querySelector(".subscription-channels .channel[color="+channel+"]");
-      element.addIndicator(bc, "in");
-      element.addDataBubble(bc, "in", input);
+      var bc = element.querySelectorAll(".subscription-channels .channel[color="+channel+"]");
+      for(var i = 0; i < bc.length; ++i) {
+        element.addIndicator(bc[i], "in");
+        element.addDataBubble(bc[i], "in", input);
+      }
     };
 
     element.log = function(message, channel, severity) {
@@ -272,6 +277,7 @@ define(["jquery", "ceci"], function($, Ceci) {
   Ceci.registerCeciPlugin("constructor", CeciUI);
 
 
+<<<<<<< HEAD
   // get a Channel object given a channel name
   function getChannelByChannelName(channelName) {
     for (var i in channels) {
