@@ -97,8 +97,8 @@ define(["jquery", "ceci"], function($, Ceci) {
       }
       for (i = 0; i < channels.length; i++) {
         channel = channels[i];
-        var numBroadcasters = broadcastersPerChannel[channel.name];
-        var numListeners = listenersPerChannel[channel.name];
+        numBroadcasters = broadcastersPerChannel[channel.name];
+        numListeners = listenersPerChannel[channel.name];
         if ((numBroadcasters === 0) && (numListeners === 0)) {
           return channel.name;
         }
@@ -120,8 +120,8 @@ define(["jquery", "ceci"], function($, Ceci) {
       }
       for (i = 0; i < channels.length; i++) {
         channel = channels[i];
-        var numBroadcasters = broadcastersPerChannel[channel.name];
-        var numListeners = listenersPerChannel[channel.name];
+        numBroadcasters = broadcastersPerChannel[channel.name];
+        numListeners = listenersPerChannel[channel.name];
         if ((numBroadcasters === 0) && (numListeners === 0))
           return channel.name;
       }
