@@ -102,6 +102,7 @@ define(["ceci"], function(Ceci) {
   // extend rehydration function for card rehydrating
   (function() {
     var oldFn = Ceci.rehydrate;
+    Ceci.rehydrateComponent = oldFn;
     Ceci.rehydrate = function(description) {
       var elements = description.elements.map(function(desc) {
         return oldFn(desc);
@@ -155,8 +156,9 @@ define(["ceci"], function(Ceci) {
 
   // TODO: when cards is instance-based, these should be removed from the global Ceci object
   Ceci._showCardCallback = function(card){};
-  Ceci._cardAddedCallback = function(card){};
-
+  Ceci._cardAddedCallback = function(card){
+    Ceci.fireChangeEvent();
+  };
 
 
   var onCardChange = Ceci.onCardChange = function (callback){
@@ -168,7 +170,10 @@ define(["ceci"], function(Ceci) {
     }
   };
   var onCardAdded = Ceci.onCardAdded = function (callback){
-    Ceci._cardAddedCallback = callback;
+    Ceci._cardAddedCallback = function(card){
+      callback(card)
+      Ceci.fireChangeEvent();
+    };
   };
 
   return Ceci;
