@@ -178,64 +178,8 @@ define(function() {
     }
     // if no broadcast channel is specified, but this is a broadcast
     // element, use the default channel. Otherwise, don't broadcast
-    return (element.broadcast ? Ceci.findBroadcastChannel() : Ceci.emptyChannel);
+    return (element.broadcast ? 'default' : Ceci.emptyChannel);
   }
-
-
-  function Channel(name, title, hex) {
-    // make sure the name is a string
-    this.name = String(name);
-    this.title = title;
-    this.hex = hex;
-  }
-
-  var channels = [
-    new Channel('blue', 'Blue Moon', '#358CCE'),
-    new Channel('red', 'Red Baloon', '#e81e1e'),
-    new Channel('pink', 'Pink Heart', '#e3197b'),
-    new Channel('purple', 'Purple Horseshoe', '#9f27cf'),
-    new Channel('green', 'Green Clover', '#71b806'),
-    new Channel('yellow', 'Yellow Pot of Gold', '#e8d71e'),
-    new Channel('orange', 'Orange Star', '#ff7b00'),
-    new Channel(Ceci.emptyChannel, 'Disabled', '#444')
-  ];
-
-  var broadcastersPerChannel = {};
-  var listenersPerChannel = {};
-  Array.prototype.forEach.call(channels, function (channel) {
-    broadcastersPerChannel[channel.name] = 0;
-    listenersPerChannel[channel.name] = 0;
-  });
-
-  Ceci.findBroadcastChannel = function() {
-    /* we'll look through the channels looking for one which doesn't
-       already have a broadcaster but has a listener */
-    var channel;
-    for (var i = 0; i < channels.length; i++) {
-      channel = channels[i];
-      var numBroadcasters = broadcastersPerChannel[channel.name];
-      var numListeners = listenersPerChannel[channel.name];
-      if ((numBroadcasters == 0) && (numListeners != 0))
-        return channel.name;
-    };
-    for (var i = 0; i < channels.length; i++) {
-      channel = channels[i];
-      var numBroadcasters = broadcastersPerChannel[channel.name];
-      var numListeners = listenersPerChannel[channel.name];
-      if ((numBroadcasters == 0) && (numListeners == 0)) {
-        return channel.name;
-      }
-    };
-    return Ceci._defaultBroadcastChannel;
-  };
-
-  function updateBroadcastChannelTracker(element, channel) {
-    if (channel) {
-      broadcastersPerChannel[channel] = ++broadcastersPerChannel[channel] || 1;
-    } else {
-      broadcastersPerChannel[channel] = --broadcastersPerChannel[channel] || 0;
-    }
-  };
 
   /**
    * Set up the broadcasting behaviour for an element, based
@@ -243,20 +187,19 @@ define(function() {
    * <element> component master.
    */
   function setupBroadcastLogic(element, original) {
+    // set property on actual on-page element
+    element.setBroadcastChannel = function(channel) {
+      var oldChannel = element.broadcastChannel;
+      element.broadcastChannel = channel;
+      if(element.onBroadcastChannelChanged) {
+        element.onBroadcastChannelChanged(channel, oldChannel);
+      }
+    };
     // get <broadcast> rules from the original declaration
     element.broadcastChannel = getBroadcastChannel(element, original);
     if(element.onBroadcastChannelChanged) {
-      updateBroadcastChannelTracker(element, element.broadcastChannel);
       element.onBroadcastChannelChanged(element.broadcastChannel);
     }
-    // set property on actual on-page element
-    element.setBroadcastChannel = function(channel) {
-      element.broadcastChannel = channel;
-      if(element.onBroadcastChannelChanged) {
-        element.onBroadcastChannelChanged(channel);
-        updateBroadcastChannelTracker(element, element.broadcastChannel);
-      }
-    };
   }
 
   /**
@@ -284,7 +227,7 @@ define(function() {
         listener: listener
       };
       if(listener === element.defaultListener) {
-        subscription.channel = Ceci.findListeningChannel();
+        subscription.channel = 'default';
       }
       subscriptions.push(subscription);
     });
@@ -292,40 +235,12 @@ define(function() {
     return subscriptions;
   }
 
-  Ceci.findListeningChannel = function() {
-    /* we'll look through the channels looking for one which doesn't
-       already have a listener but has a broadcaster */
-    var channel;
-    for (var i = 0; i < channels.length; i++) {
-      channel = channels[i];
-      var numBroadcasters = broadcastersPerChannel[channel.name];
-      var numListeners = listenersPerChannel[channel.name];
-      if ((numBroadcasters != 0) && (numListeners == 0))
-        return channel.name;
-    };
-    for (var i = 0; i < channels.length; i++) {
-      channel = channels[i];
-      var numBroadcasters = broadcastersPerChannel[channel.name];
-      var numListeners = listenersPerChannel[channel.name];
-      if ((numBroadcasters == 0) && (numListeners == 0))
-        return channel.name;
-    };
-    return Ceci._defaultListeningChannel;
-  };
-
   /**
    * Set up the listening behaviour for an element, based
    * on the broadcasting properties it inherited from the
    * <element> component master.
    */
   function setupSubscriptionLogic(element, original) {
-    // get <listen> rules from the original declaration
-    element.subscriptions = getSubscriptions(element, original);
-    if(element.onSubscriptionChannelChanged) {
-      element.subscriptions.forEach(function(s){
-        element.onSubscriptionChannelChanged(s.channel, s.listener);
-      });
-    }
     var generateListener = function(element, channel, listener) {
       return function(e) {
         if(e.target.id !== element.id) {
@@ -343,11 +258,13 @@ define(function() {
     // set properties on actual on-page element
     element.setSubscription = function(channel, listener) {
       var append = true, fn;
+      var oldChannel = null;
       element.subscriptions.forEach(function(s) {
         if(s.listener === listener) {
           // remove the old event listening
           fn = element[listener].listeningFunction;
           if(fn) {
+            oldChannel = s.channel;
             console.log("removing "+s.channel+"/"+listener+" pair");
             element.discardEventListener(document, s.channel, fn);
           }
@@ -362,7 +279,6 @@ define(function() {
             fn = false;
           }
           element[listener].listeningFunction = fn;
-          listenersPerChannel[channel] = ++listenersPerChannel[channel] || 1;
           append = false;
         }
       });
@@ -377,9 +293,16 @@ define(function() {
         });
       }
       if(element.onSubscriptionChannelChanged) {
-        element.onSubscriptionChannelChanged(channel, listener);
+        element.onSubscriptionChannelChanged(channel, listener, oldChannel);
       }
     };
+    // get <listen> rules from the original declaration
+    element.subscriptions = getSubscriptions(element, original);
+    if(element.onSubscriptionChannelChanged) {
+      element.subscriptions.forEach(function(s){
+        element.onSubscriptionChannelChanged(s.channel, s.listener);
+      });
+    }
     element.removeSubscription = function(channel, listener) {
       var filter = function(s) {
         return !(s.channel === channel && s.listener === listener);
@@ -391,7 +314,6 @@ define(function() {
           return (s.listener !== listener);
         };
       }
-      listenersPerChannel[channel] = --listenersPerChannel[channel] || 0;
       element.subscriptions = element.subscriptions.filter(filter);
     };
 
@@ -399,7 +321,6 @@ define(function() {
       var fn = generateListener(element, s.channel, s.listener);
       element[s.listener].listeningFunction = fn;
       element.setupEventListener(document, s.channel, fn);
-      listenersPerChannel[s.channel] = ++listenersPerChannel[s.channel] || 1;
     });
   }
 
