@@ -512,13 +512,14 @@ define(function() {
         };
     Array.prototype.forEach.call(ceciLinks, loadComponents);
   };
+
   Ceci.convertContainer = function (container, convertElementCalback) {
     Object.keys(Ceci._components).forEach(function(name){
       Array.prototype.forEach.call(container.querySelectorAll(name), function (element){
         Ceci.convertElement(element, convertElementCalback);
       });
     });
-  }
+  };
 
 
   Ceci.log = function(element, message, channel, severity) {
