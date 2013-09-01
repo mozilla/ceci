@@ -144,8 +144,8 @@ define(["jquery", "ceci"], function($, Ceci) {
       return elementAttributes[attrName];
     };
 
-    element.onBroadcastChannelChanged = function(channel) {
-      setChannelIndicator(element, 'broadcast', channel);
+    element.onBroadcastChannelChanged = function(channel, listener) {
+      setChannelIndicator(element, 'broadcast', channel, listener);
     };
 
     element.onSubscriptionChannelChanged = function(channel, listener) {
@@ -163,6 +163,11 @@ define(["jquery", "ceci"], function($, Ceci) {
       element.addIndicator(bc, "in");
       element.addDataBubble(bc, "in", input);
     };
+
+    element.log = function(message, channel, severity) {
+      if (severity === undefined) severity = 0;
+      Ceci.log(element, message, channel, severity);
+    }
   };
 
   // register ourselves with Ceci
