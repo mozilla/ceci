@@ -15,13 +15,11 @@ define(["jquery", "ceci"], function($, Ceci) {
   broadcastMenuToggle.setAttribute("class", "channel-menu-toggle");
   broadcastBlock.appendChild(broadcastMenuToggle.cloneNode(true));
 
-
-
   var channelDot = document.createElement("div");
   channelDot.setAttribute("class", "color dot");
 
   var channelBlock = document.createElement("div");
-  
+
   channelBlock.setAttribute("class", "channel");
   channelBlock.appendChild(channelDot.cloneNode(true));
 
@@ -40,7 +38,7 @@ define(["jquery", "ceci"], function($, Ceci) {
     var sel = "." + type + "-channels",
         lsel = sel + " .channel" + (listener ? '.' + listener : ''),
         cblock;
-    
+
     if(!element.querySelector(lsel)) {
       cblock = channelBlock.cloneNode(true);
       if(listener) {
