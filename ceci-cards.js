@@ -22,7 +22,11 @@ define(["ceci"], function(Ceci) {
   }
 
   Ceci.elementWantsAttention = function(element) {
-    showCard(element.parentNode.parentNode);
+    if (element.parentNode && element.parentNode.parentNode) {
+      showCard(element.parentNode.parentNode);
+    } else {
+      console.log("problem in elementWantsAttention, this isn't a component", element);
+    }
   };
 
   function extend(element, card) {

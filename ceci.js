@@ -186,7 +186,7 @@ define(function() {
     }
     // if no broadcast channel is specified, but this is a broadcast
     // element, use the default channel. Otherwise, don't broadcast
-    return (element.broadcast ? Ceci._defaultBroadcastChannel : Ceci.emptyChannel);
+    return (element.broadcast ? 'default' : Ceci.emptyChannel);
   }
 
   /**
@@ -195,18 +195,19 @@ define(function() {
    * <element> component master.
    */
   function setupBroadcastLogic(element, original) {
+    // set property on actual on-page element
+    element.setBroadcastChannel = function(channel) {
+      var oldChannel = element.broadcastChannel;
+      element.broadcastChannel = channel;
+      if(element.onBroadcastChannelChanged) {
+        element.onBroadcastChannelChanged(channel, oldChannel);
+      }
+    };
     // get <broadcast> rules from the original declaration
     element.broadcastChannel = getBroadcastChannel(element, original);
     if(element.onBroadcastChannelChanged) {
       element.onBroadcastChannelChanged(element.broadcastChannel);
     }
-    // set property on actual on-page element
-    element.setBroadcastChannel = function(channel) {
-      element.broadcastChannel = channel;
-      if(element.onBroadcastChannelChanged) {
-        element.onBroadcastChannelChanged(channel);
-      }
-    };
   }
 
   /**
@@ -234,7 +235,7 @@ define(function() {
         listener: listener
       };
       if(listener === element.defaultListener) {
-        subscription.channel = Ceci._defaultListeningChannel;
+        subscription.channel = 'default';
       }
       subscriptions.push(subscription);
     });
@@ -248,13 +249,6 @@ define(function() {
    * <element> component master.
    */
   function setupSubscriptionLogic(element, original) {
-    // get <listen> rules from the original declaration
-    element.subscriptions = getSubscriptions(element, original);
-    if(element.onSubscriptionChannelChanged) {
-      element.subscriptions.forEach(function(s){
-        element.onSubscriptionChannelChanged(s.channel, s.listener);
-      });
-    }
     var generateListener = function(element, channel, listener) {
       return function(e) {
         if(e.target.id !== element.id) {
@@ -272,11 +266,13 @@ define(function() {
     // set properties on actual on-page element
     element.setSubscription = function(channel, listener) {
       var append = true, fn;
+      var oldChannel = null;
       element.subscriptions.forEach(function(s) {
         if(s.listener === listener) {
           // remove the old event listening
           fn = element[listener].listeningFunction;
           if(fn) {
+            oldChannel = s.channel;
             console.log("removing "+s.channel+"/"+listener+" pair");
             element.discardEventListener(document, s.channel, fn);
           }
@@ -304,11 +300,14 @@ define(function() {
           channel: channel
         });
       }
-      if(element.onSubscriptionChannelChanged) {
-        element.onSubscriptionChannelChanged(channel, listener);
-      }
     };
-
+    // get <listen> rules from the original declaration
+    element.subscriptions = getSubscriptions(element, original);
+    if(element.onSubscriptionChannelChanged) {
+      element.subscriptions.forEach(function(s){
+        element.onSubscriptionChannelChanged(s.channel, s.listener, original);
+      });
+    }
     element.removeSubscription = function(channel, listener) {
       var filter = function(s) {
         return !(s.channel === channel && s.listener === listener);
