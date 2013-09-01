@@ -116,15 +116,9 @@ define(["jquery", "ceci-cards", "jquery-ui"], function($, Ceci) {
       this.id = id;
 
       Ceci.load.call(t, function (components) {
-        Object.keys(components).forEach(function(name){
-          Array.prototype.forEach.call(t.container.querySelectorAll(name), function (element){
-
-            // console.log("Converting an", name);
-            element.setAttribute('id', t.generateTagId(name));
-            Ceci.convertElement(element, function(){
-              t.componentAddedCallback(element);
-            });
-          });
+        Ceci.convertContainer(t.container, function (element){
+          element.setAttribute('id', t.generateTagId(name));
+          t.componentAddedCallback(element);
         });
 
         // run any plugins to be run when the app is finished loading

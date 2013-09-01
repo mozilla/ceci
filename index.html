@@ -41,8 +41,11 @@
     <script src="//cdnjs.cloudflare.com/ajax/libs/require.js/2.1.8/require.min.js"></script>
     <script>
       document.addEventListener("DOMContentLoaded", function() {
-        require(["ceci", "ceci-cards"], function(Ceci, Cards) {
-          Ceci.load(Cards.load);
+        require(["ceci-cards"], function(Ceci) {
+          console.log(Ceci);
+          Ceci.load(function(){
+            Ceci.convertContainer(document.getElementsByTagName('body')[0]);
+          });
         });
       });
     </script>
