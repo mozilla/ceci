@@ -87,11 +87,11 @@ define(["jquery", "ceci"], function($, Ceci) {
     function findBroadcastChannel() {
       /* we'll look through the channels looking for one which doesn't
          already have a broadcaster but has a listener */
-      var channel;
-      for (var i = 0; i < channels.length; i++) {
+      var channel, numBroadcasters, numListeners, i;
+      for (i = 0; i < channels.length; i++) {
         channel = channels[i];
-        var numBroadcasters = broadcastersPerChannel[channel.name];
-        var numListeners = listenersPerChannel[channel.name];
+        numBroadcasters = broadcastersPerChannel[channel.name];
+        numListeners = listenersPerChannel[channel.name];
         if ((numBroadcasters === 0) && (numListeners !== 0))
           return channel.name;
       }
@@ -109,11 +109,11 @@ define(["jquery", "ceci"], function($, Ceci) {
     function findListeningChannel(){
       /* we'll look through the channels looking for one which doesn't
          already have a listener but has a broadcaster */
-      var channel;
-      for (var i = 0; i < channels.length; i++) {
+      var channel, numBroadcasters, numListeners, i;
+      for (i = 0; i < channels.length; i++) {
         channel = channels[i];
-        var numBroadcasters = broadcastersPerChannel[channel.name];
-        var numListeners = listenersPerChannel[channel.name];
+        numBroadcasters = broadcastersPerChannel[channel.name];
+        numListeners = listenersPerChannel[channel.name];
         if ((numBroadcasters !== 0) && (numListeners === 0) && channel.name != "false") {
           return channel.name;
         }
