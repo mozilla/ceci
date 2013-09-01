@@ -167,6 +167,10 @@ define(["jquery", "ceci"], function($, Ceci) {
     element.log = function(message, channel, severity) {
       if (severity === undefined) severity = 0;
       Ceci.log(element, message, channel, severity);
+    };
+
+    element.lookAtMe = function() {
+      Ceci.elementWantsAttention(this);
     }
   };
 
