@@ -72,18 +72,24 @@ define(["jquery", "ceci-cards", "jquery-ui"], function($, Ceci) {
 
       var cards = $(this.container).find('.ceci-card');
 
-      cards.each(function (index, card) {
-        var cardManifest = {
-          elements: []
-        };
-        manifest.cards.push(cardManifest);
-        var phoneCanvas = card.querySelector('.phone-canvas');
-        Array.prototype.forEach.call(phoneCanvas.children, function (child) {
+      function collectComponentsFromContainer (container) {
+        var elements = [];
+        Array.prototype.forEach.call(container.children, function (child) {
           if (child.localName.indexOf('app-') > -1 && typeof child.describe === 'function') {
-            cardManifest.elements.push(child.describe());
+            elements.push(child.describe());
           }
         });
+        return elements;
+      }
+
+      cards.each(function (index, card) {
+        manifest.cards.push({
+          top: collectComponentsFromContainer(card.querySelector('.fixed-top')),
+          canvas: collectComponentsFromContainer(card.querySelector('.phone-canvas')),
+          bottom: collectComponentsFromContainer(card.querySelector('.fixed-bottom'))
+        });
       });
+
       return manifest;
     };
 
