@@ -136,8 +136,16 @@ define(function() {
   Ceci._reserved = ['init', 'listeners', 'defaultListener'];
   Ceci._plugins = {
     constructor: [],
-    onload: []
+    onload: [],
+    onChange: []
   };
+
+  Ceci.fireChangeEvent = function(){
+    Ceci._plugins.onChange.forEach(function(plugin) {
+      plugin();
+    });
+  };
+
   Ceci._defaultBroadcastChannel = "blue";
   Ceci._defaultListeningChannel = "blue";
   Object.defineProperty(Ceci, "emptyChannel", {
@@ -300,6 +308,7 @@ define(function() {
         element.onSubscriptionChannelChanged(channel, listener);
       }
     };
+
     element.removeSubscription = function(channel, listener) {
       var filter = function(s) {
         return !(s.channel === channel && s.listener === listener);
@@ -520,7 +529,6 @@ define(function() {
       });
     });
   };
-
 
   Ceci.log = function(element, message, channel, severity) {
     if (!message) {
