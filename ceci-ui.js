@@ -165,6 +165,15 @@ define(["jquery", "ceci"], function($, Ceci) {
       element.addIndicator(bc, "in");
       element.addDataBubble(bc, "in", input);
     };
+
+    element.log = function(message, channel, severity) {
+      if (severity === undefined) severity = 0;
+      Ceci.log(element, message, channel, severity);
+    };
+
+    element.lookAtMe = function() {
+      Ceci.elementWantsAttention(this);
+    };
   };
 
   // register ourselves with Ceci
