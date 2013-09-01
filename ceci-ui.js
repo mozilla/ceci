@@ -171,7 +171,7 @@ define(["jquery", "ceci"], function($, Ceci) {
 
     element.lookAtMe = function() {
       Ceci.elementWantsAttention(this);
-    }
+    };
   };
 
   // register ourselves with Ceci
