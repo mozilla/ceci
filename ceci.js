@@ -39,7 +39,13 @@ define(function() {
 
         if (entryType === 'function') {
           element[listener] = function() {
-            entry.apply(element, arguments);
+            try {
+              return entry.apply(element, arguments);
+            } catch (e) {
+              console.log("Exception calling listener: " + listener + " of " + element.id);
+              console.log(e.message);
+              console.log(e.stack);
+            }
           };
           element.subscriptionListeners.push(listener);
         } else {
@@ -59,6 +65,7 @@ define(function() {
         data: data,
         extra: extra
       }});
+      Ceci.log(element, "sends '"+  data.toString() + "'' on "+ element.broadcastChannel + " channel", element.broadcastChannel);
       element.dispatchEvent(e);
       if(element.onOutputGenerated) {
         element.onOutputGenerated(element.broadcastChannel, data);
@@ -436,6 +443,8 @@ define(function() {
     catch(e){
       if (e.name === 'SyntaxError') {
         e.message += " in definition of component \"" + name + "\".";
+        console.log(e.message);
+        console.log(e.stack);
         throw e;
       }
       else {
@@ -503,7 +512,6 @@ define(function() {
         };
     Array.prototype.forEach.call(ceciLinks, loadComponents);
   };
-
   Ceci.convertContainer = function (container, convertElementCalback) {
     Object.keys(Ceci._components).forEach(function(name){
       Array.prototype.forEach.call(container.querySelectorAll(name), function (element){
@@ -512,6 +520,24 @@ define(function() {
     });
   }
 
+
+  Ceci.log = function(element, message, channel, severity) {
+    if (!message) {
+      message = element;
+      element = null;
+    }
+    if (message.length > 200) message = message.slice(0,200) + '…';
+    var event = new CustomEvent('log',
+      {detail:
+        {speaker: element || null,
+         message: message || null,
+         channel: channel || null,
+         severity: severity || null}
+       });
+    document.dispatchEvent(event);
+  };
+
+  Ceci.LOG_WTF = "WTF";
 
   // and lastly, an AMD module return
   return Ceci;
