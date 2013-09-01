@@ -531,7 +531,7 @@ define(function() {
          severity: severity || null}
        });
     document.dispatchEvent(event);
-  }
+  };
 
   Ceci.LOG_WTF = "WTF";
 
