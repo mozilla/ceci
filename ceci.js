@@ -39,7 +39,13 @@ define(function() {
 
         if (entryType === 'function') {
           element[listener] = function() {
-            entry.apply(element, arguments);
+            try {
+              return entry.apply(element, arguments);
+            } catch (e) {
+              console.log("Exception calling listener: " + listener + " of " + element.id);
+              console.log(e.message);
+              console.log(e.stack);
+            }
           };
           element.subscriptionListeners.push(listener);
         } else {
