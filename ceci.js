@@ -463,18 +463,6 @@ define(function() {
       description: description,
       template: template
     };
-
-    // After chronicling, also check whether there happen to
-    // already be elements with this tagname on the page that
-    // we need to immediately convert
-
-    // I'm not sure we should be doing this without the client asking for it.
-    // Perhaps create a "convertExistingElements" function?
-    // var existingElements = document.querySelectorAll(name);
-    // Array.prototype.forEach.call(existingElements, function (existingElement) {
-
-    //   Ceci.convertElement(existingElement);
-    // });
   };
 
   /**
@@ -524,6 +512,15 @@ define(function() {
         };
     Array.prototype.forEach.call(ceciLinks, loadComponents);
   };
+
+  Ceci.convertContainer = function (container, convertElementCalback) {
+    Object.keys(Ceci._components).forEach(function(name){
+      Array.prototype.forEach.call(container.querySelectorAll(name), function (element){
+        Ceci.convertElement(element, convertElementCalback);
+      });
+    });
+  };
+
 
   Ceci.log = function(element, message, channel, severity) {
     if (!message) {
