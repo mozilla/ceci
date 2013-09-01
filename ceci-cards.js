@@ -171,7 +171,7 @@ define(["ceci"], function(Ceci) {
   };
   var onCardAdded = Ceci.onCardAdded = function (callback){
     Ceci._cardAddedCallback = function(card){
-      callback(card)
+      callback(card);
       Ceci.fireChangeEvent();
     };
   };

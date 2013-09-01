@@ -153,7 +153,7 @@ define(["jquery", "ceci-cards", "jquery-ui"], function($, Ceci) {
             else{
               // Or if allowed isn't set, reject /on.+/
               if (rejectEvents){
-                if (attr.name.indexOf('on') == 0 && attr.name.length != 2){
+                if (attr.name.indexOf('on') === 0 && attr.name.length != 2){
                   element.removeAttribute(attr.name);
                 }
               }
@@ -178,7 +178,7 @@ define(["jquery", "ceci-cards", "jquery-ui"], function($, Ceci) {
           card.appendChild(section);
 
           Array.prototype.forEach.call(realSection.children, function(component){
-            var component = Ceci.rehydrateComponent(component.describe());
+            component = Ceci.rehydrateComponent(component.describe());
             section.appendChild(component);
           });
         });
