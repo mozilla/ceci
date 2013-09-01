@@ -458,10 +458,14 @@ define(function() {
     // After chronicling, also check whether there happen to
     // already be elements with this tagname on the page that
     // we need to immediately convert
-    var existingElements = document.querySelectorAll(name);
-    Array.prototype.forEach.call(existingElements, function (existingElement) {
-      Ceci.convertElement(existingElement);
-    });
+
+    // I'm not sure we should be doing this without the client asking for it.
+    // Perhaps create a "convertExistingElements" function?
+    // var existingElements = document.querySelectorAll(name);
+    // Array.prototype.forEach.call(existingElements, function (existingElement) {
+
+    //   Ceci.convertElement(existingElement);
+    // });
   };
 
   /**

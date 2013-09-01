@@ -64,6 +64,8 @@ define(["jquery", "ceci"], function($, Ceci) {
       var v = false;
 
       Object.defineProperty(target, attrName, {
+        enumerable: false,
+        configurable: true,
         get: function() {
           return v;
         },
