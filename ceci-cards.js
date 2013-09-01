@@ -10,7 +10,7 @@ define(["ceci"], function(Ceci) {
   Ceci.currentCard = null;
 
   function showCard(card) {
-    Ceci.showCardCallback(card);
+    Ceci._showCardCallback(card);
     cards.forEach(function(c) {
       if (c === card) {
         c.style.display = "block";
@@ -24,7 +24,7 @@ define(["ceci"], function(Ceci) {
   function extend(element, card) {
     card.elements.push(element);
     element.card = card;
-    element.showCard = function() {
+    element.show = function() {
       showCard(card);
     };
   }
@@ -33,7 +33,7 @@ define(["ceci"], function(Ceci) {
     card.elements.splice(card.elements.indexOf(element), 1);
     if(element.card === card) {
       delete element.card;
-      delete element.showCard;
+      delete element.show;
     }
   }
 
@@ -73,15 +73,15 @@ define(["ceci"], function(Ceci) {
       });
     }
     card.id = card.id || cardClass + "-" + (cards.length+1);
-    ["fixed-top", "phone-canvas", "fixed-bottom"].forEach(function(segment) {
-      var div = document.createElement("div");
-      div.className = segment + " drophere";
-      card.appendChild(div);
-      observe(div, card);
+
+    Array.prototype.forEach.call(card.querySelectorAll('.fixed-top, .phone-canvas, .fixed-bottom'), function(container){
+      observe(container, card);
     });
-    card.showCard = function() {
+
+    card.show = function() {
       showCard(card);
     };
+
     card.describe = function() {
       return {
         id: card.id,
@@ -90,7 +90,9 @@ define(["ceci"], function(Ceci) {
         })
       };
     };
+
     cards.push(card);
+    Ceci._cardAddedCallback(card);
   }
 
   // extend rehydration function for card rehydrating
@@ -110,9 +112,24 @@ define(["ceci"], function(Ceci) {
     };
   }());
 
-  var createCard = Ceci.createCard = function() {
+  var createCard = Ceci.createCard = function(container) {
     var card = document.createElement("div");
+
+    var top = document.createElement("div");
+    top.classList.add('fixed-top');
+
+    var canvas = document.createElement("div");
+    canvas.classList.add('phone-canvas');
+
+    var bottom = document.createElement("div");
+    bottom.classList.add('fixed-bottom');
+
+    card.appendChild(top);
+    card.appendChild(canvas);
+    card.appendChild(bottom);
+
     card.setAttribute("class", cardClass);
+    container.appendChild(card);
     processCard(card);
     return card;
   };
@@ -122,7 +139,7 @@ define(["ceci"], function(Ceci) {
     if (cardlist.length > 0) {
       cardlist = Array.prototype.slice.call(cardlist);
       cardlist.forEach(function(card) {
-        if(!card.showCard) {
+        if(!card.show) {
           processCard(card);
         }
       });
@@ -132,21 +149,23 @@ define(["ceci"], function(Ceci) {
 
   Ceci.registerCeciPlugin("onload", convertCards);
 
-  Ceci.showCardCallback = function(card){};
+  // TODO: when cards is instance-based, these should be removed from the global Ceci object
+  Ceci._showCardCallback = function(card){};
+  Ceci._cardAddedCallback = function(card){};
+
+
 
   var onCardChange = Ceci.onCardChange = function (callback){
-    Ceci.showCardCallback = callback;
+    Ceci._showCardCallback = callback;
 
     // call the card change if we've already done one before it's wired up
     if (Ceci.currentCard){
       callback(Ceci.currentCard);
     }
   };
-
-  return {
-    onCardChange: onCardChange,
-    load: convertCards,
-    createCard: createCard,
-    _cards: cards
+  var onCardAdded = Ceci.onCardAdded = function (callback){
+    Ceci._cardAddedCallback = callback;
   };
+
+  return Ceci;
 });

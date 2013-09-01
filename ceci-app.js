@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-define(["jquery", "ceci", "ceci-cards", "ceci-ui", "jquery-ui"], function($, Ceci) {
+define(["jquery", "ceci-cards", "jquery-ui"], function($, Ceci) {
   "use strict";
 
   /**
@@ -40,9 +40,17 @@ define(["jquery", "ceci", "ceci-cards", "ceci-ui", "jquery-ui"], function($, Cec
     });
   }
 
-  var loadlisteners = [];
+  var onLoadListeners = [];
 
   var App = function(params) {
+
+    //TODO: This is faking the app "knowing" about cards, when we refactor, this should go
+    if (params.onCardChange){
+      Ceci.onCardChange(params.onCardChange);
+    }
+    if (params.onCardAdded){
+      Ceci.onCardAdded(params.onCardAdded);
+    }
 
     this.componentAddedCallback = typeof params.onComponentAdded === 'function' ? params.onComponentAdded : function(){};
 
@@ -84,10 +92,17 @@ define(["jquery", "ceci", "ceci-cards", "ceci-ui", "jquery-ui"], function($, Cec
       component.setAttribute('id', this.generateTagId(tagName));
 
       var t = this;
-      callback(component);
+
+      if (typeof callback === 'function'){
+        callback(component);
+      }
       Ceci.convertElement(component, function(){
         t.componentAddedCallback(component);
       });
+    };
+
+    this.addCard = function (){
+      var card = Ceci.createCard(this.container);
     };
 
     var init = function(id){
@@ -95,6 +110,17 @@ define(["jquery", "ceci", "ceci-cards", "ceci-ui", "jquery-ui"], function($, Cec
       this.id = id;
 
       Ceci.load.call(t, function (components) {
+        Object.keys(components).forEach(function(name){
+          Array.prototype.forEach.call(t.container.querySelectorAll(name), function (element){
+
+            // console.log("Converting an", name);
+            element.setAttribute('id', t.generateTagId(name));
+            Ceci.convertElement(element, function(){
+              t.componentAddedCallback(element);
+            });
+          });
+        });
+
         // run any plugins to be run when the app is finished loading
         Ceci._plugins.onload.forEach(function(plugin) {
           plugin();
@@ -104,22 +130,25 @@ define(["jquery", "ceci", "ceci-cards", "ceci-ui", "jquery-ui"], function($, Cec
           params.onload.call(t, components);
         }
 
-        loadlisteners.forEach(function(listener) {
+        onLoadListeners.forEach(function(listener) {
           listener(components);
         });
       });
     };
 
     if (params.id){
+      //TODO: load from S3
       init(params.id);
     } else {
       getUuid(this, init);
     }
   };
 
-  App.addLoadListener = function(listener) {
-    loadlisteners.push(listener);
+  App.onload = function(listener) {
+    onLoadListeners.push(listener);
   };
+
+
 
   App.getUuid = getUuid;
 
