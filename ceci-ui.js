@@ -92,17 +92,17 @@ define(["jquery", "ceci"], function($, Ceci) {
         channel = channels[i];
         var numBroadcasters = broadcastersPerChannel[channel.name];
         var numListeners = listenersPerChannel[channel.name];
-        if ((numBroadcasters == 0) && (numListeners != 0))
+        if ((numBroadcasters === 0) && (numListeners !== 0))
           return channel.name;
-      };
-      for (var i = 0; i < channels.length; i++) {
+      }
+      for (i = 0; i < channels.length; i++) {
         channel = channels[i];
         var numBroadcasters = broadcastersPerChannel[channel.name];
         var numListeners = listenersPerChannel[channel.name];
-        if ((numBroadcasters == 0) && (numListeners == 0)) {
+        if ((numBroadcasters === 0) && (numListeners === 0)) {
           return channel.name;
         }
-      };
+      }
       return Ceci._defaultBroadcastChannel;
     }
 
@@ -114,17 +114,17 @@ define(["jquery", "ceci"], function($, Ceci) {
         channel = channels[i];
         var numBroadcasters = broadcastersPerChannel[channel.name];
         var numListeners = listenersPerChannel[channel.name];
-        if ((numBroadcasters != 0) && (numListeners == 0) && channel.name != "false") {
+        if ((numBroadcasters !== 0) && (numListeners === 0) && channel.name != "false") {
           return channel.name;
         }
-      };
-      for (var i = 0; i < channels.length; i++) {
+      }
+      for (i = 0; i < channels.length; i++) {
         channel = channels[i];
         var numBroadcasters = broadcastersPerChannel[channel.name];
         var numListeners = listenersPerChannel[channel.name];
-        if ((numBroadcasters == 0) && (numListeners == 0))
+        if ((numBroadcasters === 0) && (numListeners === 0))
           return channel.name;
-      };
+      }
       return Ceci._defaultListeningChannel;
     };
 
