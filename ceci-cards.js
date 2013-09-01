@@ -19,7 +19,7 @@ define(["ceci"], function(Ceci) {
       }
     });
     Ceci.currentCard = card;
-  };
+  }
 
   Ceci.elementWantsAttention = function(element) {
     showCard(element.parentNode.parentNode);
