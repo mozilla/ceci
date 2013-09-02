@@ -63,12 +63,11 @@ define(["jquery", "ceci"], function($, Ceci) {
 
       Object.defineProperty(target, attrName, {
         enumerable: false,
-        configurable: true,
+        configurable: false,
         get: function() {
           return v;
         },
         set: function(v) {
-          Ceci.fireChangeEvent();
           target.setAttribute(attrName, v);
         }
       });
@@ -80,11 +79,12 @@ define(["jquery", "ceci"], function($, Ceci) {
           if (fallthrough) {
             fallthrough.call(target, v);
           }
+          Ceci.fireChangeEvent();
         });
       };
 
       var observer = new MutationObserver(handler);
-      var config = { attributes: true, attributeFilter: [attrName] };
+      var config = { attributes: true, attributeFilter: [attrName.toLowerCase()] };
 
       observer.observe(target, config);
     };
