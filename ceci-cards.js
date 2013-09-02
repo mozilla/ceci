@@ -9,6 +9,13 @@ define(["ceci"], function(Ceci) {
   var cards = [];
   Ceci.currentCard = null;
 
+  Ceci.clearCards = function(){
+    cards.forEach(function(card){
+      card.remove();
+    });
+    cards = [];
+  };
+
   function showCard(card) {
     Ceci._showCardCallback(card);
     cards.forEach(function(c) {
