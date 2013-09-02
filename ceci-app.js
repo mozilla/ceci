@@ -205,6 +205,17 @@ define(["jquery", "ceci-cards", "jquery-ui"], function($, Ceci) {
       var card = Ceci.createCard(this.container);
     };
 
+    // This is clearly a hack, we should just be doing new App(...),
+    // but it's too much work to make that right right now.
+    this.clear = function () {
+      var t = this;
+      getUuid(this, function(id){
+        t.id = id;
+        Ceci.clearCards();
+        this.addCard();
+      });
+    };
+
     var init = function(id){
       var t = this;
       this.id = id;
