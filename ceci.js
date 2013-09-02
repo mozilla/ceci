@@ -90,6 +90,13 @@ define(function() {
       };
     }
 
+    element.unload = function () {};
+    if (typeof buildProperties.onUnload === 'function'){
+      element.unload = function () {
+        buildProperties.onUnload.apply(element);
+      };
+    }
+
     // pass along the broadcast property
     element.broadcast = buildProperties.broadcast;
 
@@ -129,6 +136,9 @@ define(function() {
       if (element.parentNode) {
         element.parentNode.removeChild(element);
       }
+
+      element.unload();
+
       Ceci.fireChangeEvent();
     };
 
