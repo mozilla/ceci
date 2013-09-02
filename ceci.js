@@ -58,6 +58,15 @@ define(function() {
       element.endpoint = true;
     }
 
+    // XXXsecretrobotron: Temporary fill for elements calling `this.log`. Hooked up to
+    // Ceci.log by forcing each arg to be a string.
+    element.log = function () {
+      var argStr = Array.prototype.map.call(arguments, function (arg) {
+        return arg ? arg.toString() : '';
+      }).join(' ');
+      Ceci.log(element, argStr);
+    };
+
     element.emit = function (data, extra) {
       if(element.endpoint) return;
       if(element.broadcastChannel === Ceci.emptyChannel) return;
