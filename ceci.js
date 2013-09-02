@@ -139,6 +139,7 @@ define(function() {
 
       element.unload();
 
+      Ceci.fireElementRemovedEvent(element);
       Ceci.fireChangeEvent();
     };
 
@@ -157,12 +158,19 @@ define(function() {
   Ceci._plugins = {
     constructor: [],
     onload: [],
-    onChange: []
+    onChange: [],
+    onElementRemoved: []
   };
 
   Ceci.fireChangeEvent = function(){
     Ceci._plugins.onChange.forEach(function(plugin) {
       plugin();
+    });
+  };
+
+  Ceci.fireElementRemovedEvent = function(element){
+    Ceci._plugins.onElementRemoved.forEach(function(plugin) {
+      plugin(element);
     });
   };
 
