@@ -120,6 +120,7 @@ define(function() {
       if (element.parentNode) {
         element.parentNode.removeChild(element);
       }
+      Ceci.fireChangeEvent();
     };
 
     element.describe = function() {
