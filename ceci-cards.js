@@ -11,6 +11,13 @@ define(["ceci"], function(Ceci) {
 
   Ceci.clearCards = function(){
     cards.forEach(function(card){
+
+      //TODO: This might be a bit of a heavy-handed approach to this.
+      Array.prototype.forEach.call(card.querySelectorAll('*'), function(element){
+        if (element.removeSafely){
+          element.removeSafely();
+        }
+      });
       card.remove();
     });
     cards = [];
