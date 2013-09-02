@@ -65,7 +65,7 @@ define(function() {
         data: data,
         extra: extra
       }});
-      Ceci.log(element, "sends '"+  data.toString() + "'' on "+ element.broadcastChannel + " channel", element.broadcastChannel);
+      Ceci.log(element, "sends '"+  data.toString() + "' on "+ element.broadcastChannel + " channel", element.broadcastChannel);
       element.dispatchEvent(e);
       if(element.onOutputGenerated) {
         element.onOutputGenerated(element.broadcastChannel, data);
