@@ -136,6 +136,10 @@ define(function() {
       return Ceci.dehydrate(element);
     };
 
+    element.lookAtMe = function() {
+      Ceci.elementWantsAttention(this);
+    };
+
     // run any plugins that hook into the constructor
     Ceci._plugins.constructor.forEach(function(plugin) {
       plugin(element, buildProperties);
