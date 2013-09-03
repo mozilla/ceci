@@ -16,7 +16,7 @@ define(function() {
       var entry = buildProperties[property];
       if (typeof entry === 'function') {
         element[property] = function() {
-          entry.apply(element, arguments);
+          return entry.apply(element, arguments);
         };
       }
     });
@@ -145,6 +145,10 @@ define(function() {
 
     element.describe = function() {
       return Ceci.dehydrate(element);
+    };
+
+    element.lookAtMe = function() {
+      Ceci.elementWantsAttention(this);
     };
 
     // run any plugins that hook into the constructor
@@ -405,7 +409,7 @@ define(function() {
    * Convert an element of tagname '...' based on the component
    * description for the custom element '...'
    */
-  Ceci.convertElement = function (instance, completedHandler) {
+  Ceci.convertElement = function (instance, completedHandler, noWiring) {
     var componentDefinition = Ceci._components[instance.localName],
         originalElement = instance.cloneNode(true);
 
@@ -436,9 +440,10 @@ define(function() {
     // set up the hook for post constructor callbacks
     var finalize = function() {
       finalize.called = true;
-      setupBroadcastLogic(instance, originalElement);
-      setupSubscriptionLogic(instance, originalElement);
-
+      if (!noWiring) {
+        setupBroadcastLogic(instance, originalElement);
+        setupSubscriptionLogic(instance, originalElement);
+      }
       /*
        * "t" has been set up to be either an instance of Ceci.App
        * or something we don't care about. It's a bit hacky, but
