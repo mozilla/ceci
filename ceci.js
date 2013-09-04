@@ -495,7 +495,13 @@ define(function() {
     }
     var constructor = generator(Ceci),
         description = element.querySelector('description'),
+        friendsElt = element.querySelector('friends'),
         template = element.querySelector('template');
+
+    var friends = [];
+    if (friendsElt) {
+      friends = friendsElt.innerHTML.split(',');
+    }
 
     // Store this element's defining features
     // so that we can reference them when an element
@@ -503,6 +509,7 @@ define(function() {
     Ceci._components[name] = {
       constructor: constructor,
       description: description,
+      friends: friends,
       template: template
     };
   };
