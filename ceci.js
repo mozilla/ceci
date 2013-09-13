@@ -432,7 +432,21 @@ define(function() {
     // if the <element> had a description block, bind this
     // to the instance as well, for future reference.
     if (componentDefinition.description) {
-      instance.description = componentDefinition.description;
+      var desc = componentDefinition.description.cloneNode(true);
+      Object.defineProperty(instance, "description", {
+        get: function() { return desc; },
+        set: function() {}
+      });
+    }
+
+    // if the <element> had a thumbnail block, bind this
+    // to the instance as well, for future reference.
+    if (componentDefinition.thumbnail) {
+      var thumb = componentDefinition.thumbnail.cloneNode(true);
+      Object.defineProperty(instance, "thumbnail", {
+        get: function() { return thumb; },
+        set: function() {}
+      });
     }
 
     var t = this;
@@ -495,12 +509,13 @@ define(function() {
     }
     var constructor = generator(Ceci),
         description = element.querySelector('description'),
-        friendsElt = element.querySelector('friends'),
+        thumbnail = element.querySelector('thumbnail'),
+        friendsBlock = element.querySelector('friends'),
         template = element.querySelector('template');
 
     var friends = [];
-    if (friendsElt) {
-      friends = friendsElt.innerHTML.split(',');
+    if (friendsBlock) {
+      friends = friendsBlock.innerHTML.split(',');
     }
 
     // Store this element's defining features
@@ -509,6 +524,7 @@ define(function() {
     Ceci._components[name] = {
       constructor: constructor,
       description: description,
+      thumbnail: thumbnail,
       friends: friends,
       template: template
     };
