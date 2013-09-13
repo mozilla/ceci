@@ -435,6 +435,12 @@ define(function() {
       instance.description = componentDefinition.description;
     }
 
+    // if the <element> had a thumbnail block, bind this
+    // to the instance as well, for future reference.
+    if (componentDefinition.thumbnail) {
+      instance.thumbnail = componentDefinition.thumbnail;
+    }
+
     var t = this;
 
     // set up the hook for post constructor callbacks
@@ -495,12 +501,13 @@ define(function() {
     }
     var constructor = generator(Ceci),
         description = element.querySelector('description'),
-        friendsElt = element.querySelector('friends'),
+        thumbnail = element.querySelector('thumbnail'),
+        friendsBlock = element.querySelector('friends'),
         template = element.querySelector('template');
 
     var friends = [];
-    if (friendsElt) {
-      friends = friendsElt.innerHTML.split(',');
+    if (friendsBlock) {
+      friends = friendsBlock.innerHTML.split(',');
     }
 
     // Store this element's defining features
@@ -509,6 +516,7 @@ define(function() {
     Ceci._components[name] = {
       constructor: constructor,
       description: description,
+      thumbnail: thumbnail,
       friends: friends,
       template: template
     };
