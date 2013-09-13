@@ -432,13 +432,21 @@ define(function() {
     // if the <element> had a description block, bind this
     // to the instance as well, for future reference.
     if (componentDefinition.description) {
-      instance.description = componentDefinition.description;
+      var desc = componentDefinition.description.cloneNode(true);
+      Object.defineProperty(instance, "description", {
+        get: function() { return desc; },
+        set: function() {}
+      });
     }
 
     // if the <element> had a thumbnail block, bind this
     // to the instance as well, for future reference.
     if (componentDefinition.thumbnail) {
-      instance.thumbnail = componentDefinition.thumbnail;
+      var thumb = componentDefinition.thumbnail.cloneNode(true);
+      Object.defineProperty(instance, "thumbnail", {
+        get: function() { return thumb; },
+        set: function() {}
+      });
     }
 
     var t = this;
