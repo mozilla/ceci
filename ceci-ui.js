@@ -7,14 +7,6 @@ define(["jquery", "ceci"], function($, Ceci) {
   var subscriptionBlock = document.createElement("listen");
   subscriptionBlock.setAttribute("class","channel-visualisation subscription-channels");
 
-  var subscriptionMenuToggle = document.createElement("div");
-  subscriptionMenuToggle.setAttribute("class", "channel-menu-toggle");
-  subscriptionBlock.appendChild(subscriptionMenuToggle.cloneNode(true));
-
-  var broadcastMenuToggle = document.createElement("div");
-  broadcastMenuToggle.setAttribute("class", "channel-menu-toggle");
-  broadcastBlock.appendChild(broadcastMenuToggle.cloneNode(true));
-
   var channelDot = document.createElement("div");
   channelDot.setAttribute("class", "color dot");
 
