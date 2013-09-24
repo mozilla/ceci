@@ -35,7 +35,7 @@ define(["jquery", "ceci"], function($, Ceci) {
       cblock = channelBlock.cloneNode(true);
       if(listener) {
         cblock.classList.add(listener);
-        cblock.innerHTML = listener
+        cblock.innerHTML = listener;
       }
       element.querySelector(sel).appendChild(cblock);
     }
@@ -115,7 +115,7 @@ define(["jquery", "ceci"], function($, Ceci) {
 
       var addDiv = function () {
         element.appendChild(div);
-      }
+      };
 
       //Check message direction and add data visual
       if (direction === "out") {
@@ -131,7 +131,7 @@ define(["jquery", "ceci"], function($, Ceci) {
       //Remove data visual
       setTimeout(removeDiv, 2400);
 
-    }
+    };
 
     element.addIndicator = function(element, direction) {
       var indicator = document.createElement("div");
@@ -182,7 +182,7 @@ define(["jquery", "ceci"], function($, Ceci) {
     element.onInputReceived = function(channel, input) {
       var bc = element.querySelectorAll(".subscription-channels .channel[color="+channel+"]");
       for(var i = 0; i < bc.length; ++i) {
-        element.addDataVisual(bc[i], "in")
+        element.addDataVisual(bc[i], "in");
         element.addDataBubble(bc[i], "in", input);
       }
     };
