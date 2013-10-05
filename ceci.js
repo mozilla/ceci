@@ -573,6 +573,7 @@ define(function() {
               processComponents(fragments, callOnComplete);
             }
           };
+          xhr.overrideMimeType('text/plain');
           xhr.send(null);
         };
     Array.prototype.forEach.call(ceciLinks, loadComponents);
