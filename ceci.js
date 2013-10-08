@@ -357,8 +357,10 @@ define(function() {
 
     element.subscriptions.forEach(function (s) {
       var fn = generateListener(element, s.channel, s.listener);
-      element[s.listener].listeningFunction = fn;
-      element.setupEventListener(document, s.channel, fn);
+      if (element[s.listener]) {
+        element[s.listener].listeningFunction = fn;
+        element.setupEventListener(document, s.channel, fn);
+      }
     });
   }
 
