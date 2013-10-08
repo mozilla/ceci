@@ -36,7 +36,16 @@ define(["ceci"], function(Ceci) {
   }
 
   Ceci.elementWantsAttention = function(element) {
-    showCard(element.parentNode.parentNode);
+    var cardElement = element.parentNode;
+    while (cardElement && !cardElement.classList.contains('ceci-card')) {
+      cardElement = cardElement.parentNode;
+    }
+    if (cardElement) {
+      showCard(cardElement);
+    }
+    else {
+      console.error('Couldn\'t show element\s card!');
+    }
   };
 
   function extend(element, card) {
