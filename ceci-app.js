@@ -253,11 +253,9 @@ define(["jquery", "ceci-cards", "jquery-ui"], function($, Ceci) {
     onLoadListeners.push(listener);
   };
 
-
-
   App.getUuid = getUuid;
 
   Ceci.App = App;
 
-  return App;
+  return Ceci;
 });
