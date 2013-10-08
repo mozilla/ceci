@@ -44,7 +44,7 @@ define(["ceci"], function(Ceci) {
       showCard(cardElement);
     }
     else {
-      console.error('Couldn\'t show element\s card!');
+      console.error('Couldn\'t show element\'s card!');
     }
   };
 
