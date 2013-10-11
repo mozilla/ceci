@@ -65,35 +65,6 @@ define(["jquery", "ceci-cards", "jquery-ui"], function($, Ceci) {
       return tagName + '-' + String(++this.tagids[tagName]);
     };
 
-    var collectComponentsFromContainer = function(container) {
-      var elements = [];
-      Array.prototype.forEach.call(container.children, function (child) {
-        if (child.localName.indexOf('app-') > -1 && typeof child.describe === 'function') {
-          elements.push(child.describe());
-        }
-      });
-      return elements;
-    };
-
-    this.toJSON = function () {
-      var manifest = {
-        cards: []
-      };
-
-      var cards = $(this.container).find('.ceci-card');
-
-
-
-      cards.each(function (index, card) {
-        manifest.cards.push({
-          top: collectComponentsFromContainer(card.querySelector('.fixed-top')),
-          canvas: collectComponentsFromContainer(card.querySelector('.phone-canvas')),
-          bottom: collectComponentsFromContainer(card.querySelector('.fixed-bottom'))
-        });
-      });
-      return manifest;
-    };
-
     /*
      * Here we clone each card and go two levels down, then construct listeners
      *  <div class="ceci-card">
@@ -109,82 +80,7 @@ define(["jquery", "ceci-cards", "jquery-ui"], function($, Ceci) {
      *  </div>
      */
     this.serialize = function(){
-      var doc = document.createElement('div');
-
-
-      var cleanAttributes = function(element, params){
-        params = params ? params : {};
-        var allowedAttributes = params.keep;
-        var reject = params.reject;
-        var rejectEvents = params.rejectEvents;
-        var rejectAll = false;
-
-        //default reject everything
-        if (typeof rejectEvents === 'undefinded' && typeof allowedAttributes === 'undefinded'){
-          rejectAll = true;
-        }
-
-        if (typeof reject === 'string'){
-          reject = [reject];
-        }
-
-        if (typeof allowedAttributes === 'string'){
-          allowedAttributes = [allowedAttributes];
-        }
-
-        if (reject){
-          reject.forEach(function(name){
-            element.removeAttribute(name);
-          });
-        }
-
-
-        Array.prototype.forEach.call(element.attributes, function(attr){
-          if (rejectAll){
-            element.removeAttribute(attr.name);
-          }
-          else{
-            // Reject all except for allowed attributes
-            if (allowedAttributes){
-              if (allowedAttributes.indexOf(attr.name) === -1){
-                element.removeAttribute(attr.name);
-              }
-            }
-            else{
-              // Or if allowed isn't set, reject /on.+/
-              if (rejectEvents){
-                if (attr.name.indexOf('on') === 0 && attr.name.length != 2){
-                  element.removeAttribute(attr.name);
-                }
-              }
-            }
-          }
-        });
-        return element;
-      };
-
-      // this actually means "do shallow"
-      var shallow = false;
-
-      Array.prototype.forEach.call(this.container.querySelectorAll('.ceci-card'), function(realCard){
-        var card = realCard.cloneNode(shallow);
-        cleanAttributes(card, {keep: 'class', reject: ['id', 'style']});
-        doc.appendChild(card);
-
-        Array.prototype.forEach.call(realCard.children, function(realSection){
-          var section = realSection.cloneNode(shallow);
-
-          cleanAttributes(section, {keep: 'class', reject: ['id', 'style']});
-          card.appendChild(section);
-
-          Array.prototype.forEach.call(realSection.children, function(component){
-            component = Ceci.rehydrateComponent(component.describe());
-            section.appendChild(component);
-          });
-        });
-      });
-
-      return doc.innerHTML;
+      return this.getPortableAppTree().innerHTML;
     };
 
     this.addComponent = function (tagName, callback) {
@@ -203,6 +99,122 @@ define(["jquery", "ceci-cards", "jquery-ui"], function($, Ceci) {
 
     this.addCard = function (){
       var card = Ceci.createCard(this.container);
+      return card;
+    };
+
+    this.duplicateCard = function (card) {
+      var cardClone = card.cloneNode(true);
+      this.getPortableCardTree(cardClone);
+      Ceci.addCard(this.container, cardClone, this.componentAddedCallback);
+      return cardClone;
+    };
+
+    this.getPortableCardTree = function (card) {
+
+      function cleanAttributes (element, params) {
+        params = params ? params : {};
+        var allowedAttributes = params.keep;
+        var reject = params.reject;
+        var rejectEvents = params.rejectEvents;
+        var rejectAll = false;
+
+        //default reject everything
+        if (typeof rejectEvents === 'undefined' && typeof allowedAttributes === 'undefined'){
+          rejectAll = true;
+        }
+
+        if (typeof reject === 'string') {
+          reject = [reject];
+        }
+
+        if (typeof allowedAttributes === 'string') {
+          allowedAttributes = [allowedAttributes];
+        }
+
+        if (reject) {
+          reject.forEach(function(name) {
+            element.removeAttribute(name);
+          });
+        }
+
+        Array.prototype.forEach.call(element.attributes, function (attr) {
+          if (rejectAll) {
+            element.removeAttribute(attr.name);
+          }
+          else {
+            // Reject all except for allowed attributes
+            if (allowedAttributes) {
+              if (allowedAttributes.indexOf(attr.name) === -1) {
+                element.removeAttribute(attr.name);
+              }
+            }
+            else {
+              // Or if allowed isn't set, reject /on.+/
+              if (rejectEvents) {
+                if (attr.name.indexOf('on') === 0 && attr.name.length != 2) {
+                  element.removeAttribute(attr.name);
+                }
+              }
+            }
+          }
+        });
+        return element;
+      }
+
+      cleanAttributes(card, {keep: 'class', reject: ['id', 'style']});
+
+      function cleanAppChildren (node) {
+        if (node.localName.indexOf('app-') !== 0 && ['broadcast', 'listen'].indexOf(node.localName) === -1) {
+          node.parentNode.removeChild(node);
+        }
+        cleanAttributes(node, {rejectEvents: true});
+        if (node.children.length > 0) {
+          Array.prototype.forEach.call(node.children, cleanAppChildren);
+        }
+      }
+
+      Array.prototype.forEach.call(card.children, function (section) {
+        Array.prototype.forEach.call(section.children, cleanAppChildren);
+      });
+
+      function cleanSection (sectionContainer) {
+        var listenElements = Array.prototype.slice.call(sectionContainer.querySelectorAll('listen'));
+        var broadcastElements = Array.prototype.slice.call(sectionContainer.querySelectorAll('broadcast'));
+        var subscriptionElements = listenElements.concat(broadcastElements);
+
+        subscriptionElements.forEach(function (subscriptionElement) {
+          subscriptionElement.innerHTML = '';
+          if (subscriptionElement.parentNode.localName.indexOf('app-') !== 0) {
+            subscriptionElement.parentNode.removeChild(subscriptionElement);
+          }
+        });
+
+        function cleanComponentElement (componentElement) {
+          if (componentElement.localName.indexOf('app-') === 0 || ['broadcast', 'listen'].indexOf(componentElement.localName) > -1){
+            Array.prototype.slice.call(componentElement.children).forEach(cleanComponentElement);
+          }
+          else {
+            componentElement.parentNode.removeChild(componentElement);
+          }
+        }
+
+        Array.prototype.slice.call(sectionContainer.children).forEach(cleanComponentElement);
+      }
+
+      ['.fixed-top', '.phone-canvas', '.fixed-bottom'].forEach(function (sectionSelector) {
+        cleanSection(card.querySelector(sectionSelector));
+      });
+
+      return card;
+    };
+
+    this.getPortableAppTree = function () {
+      var appContainerClone = this.container.cloneNode(true);
+      var cards = appContainerClone.querySelectorAll('.ceci-card');
+
+      Array.prototype.forEach.call(cards, this.getPortableCardTree);
+
+      return appContainerClone;
     };
 
     // This is clearly a hack, we should just be doing new App(...),
@@ -235,6 +247,7 @@ define(["jquery", "ceci-cards", "jquery-ui"], function($, Ceci) {
           params.onload.call(t, components);
         }
 
+        Ceci.currentCard = t.container.querySelector('.ceci-card');
         onLoadListeners.forEach(function(listener) {
           listener(components);
         });
@@ -242,7 +255,6 @@ define(["jquery", "ceci-cards", "jquery-ui"], function($, Ceci) {
     };
 
     if (params.id){
-      //TODO: load from S3
       init(params.id);
     } else {
       getUuid(this, init);
