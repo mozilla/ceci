@@ -101,7 +101,9 @@ define(["ceci"], function(Ceci) {
     }
     card.id = card.id || cardClass + "-" + (cards.length+1);
 
-    Array.prototype.forEach.call(card.querySelectorAll('.fixed-top, .phone-canvas, .fixed-bottom'), function(container){
+    var sections = card.querySelectorAll('.fixed-top, .phone-canvas, .fixed-bottom');
+
+    Array.prototype.forEach.call(sections, function(container) {
       observe(container, card);
     });
 
@@ -109,16 +111,8 @@ define(["ceci"], function(Ceci) {
       showCard(card);
     };
 
-    card.describe = function() {
-      return {
-        id: card.id,
-        elements: card.elements.map(function(e) {
-          return e.describe();
-        })
-      };
-    };
-
     cards.push(card);
+
     Ceci._cardAddedCallback(card);
   }
 
@@ -160,6 +154,12 @@ define(["ceci"], function(Ceci) {
     container.appendChild(card);
     processCard(card);
     return card;
+  };
+
+  Ceci.addCard = function (container, card, elementCallback) {
+    container.appendChild(card);
+    processCard(card);
+    Ceci.convertContainer(card, elementCallback);
   };
 
   function convertCards() {
