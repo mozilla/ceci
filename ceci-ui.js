@@ -35,6 +35,7 @@ define(["jquery", "ceci"], function($, Ceci) {
       cblock = channelBlock.cloneNode(true);
       if(listener) {
         cblock.classList.add(listener);
+        cblock.innerHTML = listener;
       }
       element.querySelector(sel).appendChild(cblock);
     }
@@ -96,15 +97,40 @@ define(["jquery", "ceci"], function($, Ceci) {
     }
 
     element.addDataBubble = function(element, direction, data) {
-      var timeout = (direction === "out" ? 0 : signalSpeed * 1000);
+      var timeout = (direction === "out" ? 400 : 1200);
       setTimeout(function() {
         var bubble = document.createElement("div");
         $(bubble).text(data).addClass("bubblepopup").addClass("bubblepop");
         $(element).append(bubble);
         setTimeout(function() {
           $(bubble).remove();
-        }, bubbleDuration * 1000);
+        }, 700);
       }, timeout);
+    };
+
+    element.addDataVisual = function (element, direction) {
+
+      var div = document.createElement("div");
+      div.setAttribute("class", "data-visual");
+
+      var addDiv = function () {
+        element.appendChild(div);
+      };
+
+      //Check message direction and add data visual
+      if (direction === "out") {
+        addDiv();
+      } else {
+        setTimeout(addDiv, 800);
+      }
+
+      var removeDiv = function() {
+        element.removeChild(div);
+      };
+
+      //Remove data visual
+      setTimeout(removeDiv, 2400);
+
     };
 
     element.addIndicator = function(element, direction) {
@@ -149,14 +175,14 @@ define(["jquery", "ceci"], function($, Ceci) {
 
     element.onOutputGenerated = function(channel, output) {
       var bc = element.querySelector(".broadcast-channels .channel[color="+channel+"]");
-      element.addIndicator(bc, "out");
+      element.addDataVisual(bc, "out");
       element.addDataBubble(bc, "out", output);
     };
 
     element.onInputReceived = function(channel, input) {
       var bc = element.querySelectorAll(".subscription-channels .channel[color="+channel+"]");
       for(var i = 0; i < bc.length; ++i) {
-        element.addIndicator(bc[i], "in");
+        element.addDataVisual(bc[i], "in");
         element.addDataBubble(bc[i], "in", input);
       }
     };
