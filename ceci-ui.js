@@ -163,8 +163,8 @@ define(["jquery", "ceci"], function($, Ceci) {
       return elementAttributes[attrName];
     };
 
-    element.onBroadcastChannelChanged = function(channel) {
-      setChannelIndicator(element, 'broadcast', channel);
+    element.onBroadcastChannelChanged = function(channel, name) {
+      setChannelIndicator(element, 'broadcast', channel, name);
       Ceci.fireChangeEvent();
     };
 
@@ -175,6 +175,8 @@ define(["jquery", "ceci"], function($, Ceci) {
 
     element.onOutputGenerated = function(channel, output) {
       var bc = element.querySelector(".broadcast-channels .channel[color="+channel+"]");
+      // TODO: remove addIndicator
+      element.addIndicator(bc, "out");
       element.addDataVisual(bc, "out");
       element.addDataBubble(bc, "out", output);
     };
@@ -182,6 +184,8 @@ define(["jquery", "ceci"], function($, Ceci) {
     element.onInputReceived = function(channel, input) {
       var bc = element.querySelectorAll(".subscription-channels .channel[color="+channel+"]");
       for(var i = 0; i < bc.length; ++i) {
+        // TODO: remove addIndicator
+        element.addIndicator(bc[i], "in");
         element.addDataVisual(bc[i], "in");
         element.addDataBubble(bc[i], "in", input);
       }

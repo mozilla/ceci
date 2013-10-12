@@ -67,17 +67,30 @@ define(function() {
       Ceci.log(element, argStr);
     };
 
-    element.emit = function (data, extra) {
-      if(element.endpoint) return;
-      if(element.broadcastChannel === Ceci.emptyChannel) return;
-      var e = new CustomEvent(element.broadcastChannel, {bubbles: true, detail: {
+    element.emit = function (type, data, extra) {
+      data = data || type;
+
+      if (element.endpoint) return;
+
+      var broadcastElement = element.querySelector('broadcast[from="' + type + '"]');
+
+      if (!broadcastElement) return;
+
+      var channel = broadcastElement.getAttribute('on');
+
+      if (!channel) return;
+
+      var e = new CustomEvent(channel, {bubbles: true, detail: {
         data: data,
         extra: extra
       }});
-      Ceci.log(element, "sends '"+  data.toString() + "' on "+ element.broadcastChannel + " channel", element.broadcastChannel);
+
+      Ceci.log(element, "sends '" + data.toString() + "' on "+ channel + " channel", channel);
+
       element.dispatchEvent(e);
+
       if(element.onOutputGenerated) {
-        element.onOutputGenerated(element.broadcastChannel, data);
+        element.onOutputGenerated(channel, data);
       }
     };
 
@@ -98,6 +111,7 @@ define(function() {
 
     // pass along the broadcast property
     element.broadcast = buildProperties.broadcast;
+    element.broadcast = buildProperties.broadcast || element.emit;
 
     // add an event listener and record it got added by this element
     element.setupEventListener = function(item, event, fn, listenerName) {
@@ -207,58 +221,38 @@ define(function() {
   };
 
   /**
-   * This function is only called once, when an element
-   * is instantiated, and returns the name of the channel
-   * the element should be listening to "by default".
-   */
-  function getBroadcastChannel(element, original) {
-    // get <broadcast> element information
-    var broadcast = original.querySelector('broadcast');
-
-    if (broadcast) {
-      var channel = broadcast.getAttribute("on");
-      if (channel) {
-        return channel;
-      }
-    }
-    // if no broadcast channel is specified, but this is a broadcast
-    // element, use the default channel. Otherwise, don't broadcast
-    return (element.broadcast ? Ceci._defaultBroadcastChannel : Ceci.emptyChannel);
-  }
-
-  /**
    * Set up the broadcasting behaviour for an element, based
    * on the broadcasting properties it inherited from the
    * <element> component master.
    */
   function setupBroadcastLogic (element, original) {
-    // get <broadcast> rules from the original declaration
-    var broadcastChannel = getBroadcastChannel(element, original);
-
     // set property on actual on-page element
-    element.setBroadcastChannel = function (channel) {
-      element.broadcastChannel = channel;
-
+    element.setBroadcast = function (channel, name) {
       var broadcastElement;
 
-      broadcastElement = element.querySelector('broadcast');
+      broadcastElement = element.querySelector('broadcast[from="' + name + '"]');
       if (channel) {
         if (!broadcastElement) {
           broadcastElement = document.createElement('broadcast');
           element.appendChild(broadcastElement);
         }
         broadcastElement.setAttribute('on', channel);
+        broadcastElement.setAttribute('from', name);
       }
       else if (!channel && broadcastElement) {
         element.removeChild(broadcastElement);
       }
 
       if(element.onBroadcastChannelChanged) {
-        element.onBroadcastChannelChanged(channel);
+        element.onBroadcastChannelChanged(channel, name);
       }
     };
 
-    element.setBroadcastChannel(broadcastChannel);
+    // get <broadcast> rules from the original declaration
+    var broadcasts = original.querySelectorAll('broadcast');
+    Array.prototype.forEach.call(broadcasts, function (broadcastElement) {
+      element.setBroadcast(broadcastElement.getAttribute('on'), broadcastElement.getAttribute('from'));
+    });
   }
 
   /**
