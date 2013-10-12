@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-define(["jquery", "ceci-cards", "jquery-ui"], function($, Ceci) {
+define(["ceci-cards", "utils"], function(Ceci, Utils) {
   "use strict";
 
   /**
@@ -16,7 +16,8 @@ define(["jquery", "ceci-cards", "jquery-ui"], function($, Ceci) {
    *
    */
   function getUuid(contextOrCallback, callback) {
-    $.get('/store/uuid', function(data) {
+    alert('gettin uid');
+    Utils.get('/store/uuid', function(data) {
       if (!callback){
         if (typeof contextOrCallback === 'function'){
           callback = contextOrCallback;
