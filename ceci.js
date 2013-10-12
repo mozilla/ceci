@@ -105,7 +105,7 @@ define(function() {
         var listenElement = element.querySelector('listen[on="' + event + '"][for="' + listenerName + '"]');
 
         if (!listenElement) {
-          var listenElement = document.createElement('listen');
+          listenElement = document.createElement('listen');
           element.appendChild(listenElement);
         }
         else {
@@ -123,8 +123,8 @@ define(function() {
 
     // remove a specific event listener associated with this element
     element.discardEventListener = function(item, event, listenerName) {
-      var subscriptionElement;
-      if (subscriptionElement = element.querySelector('listen[on="' + event + '"][for="' + listenerName + '"]')) {
+      var subscriptionElement = element.querySelector('listen[on="' + event + '"][for="' + listenerName + '"]');
+      if (subscriptionElement) {
         element.removeChild(subscriptionElement);
         item.removeEventListener(event, element._listeningFunction);
       }
