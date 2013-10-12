@@ -2,7 +2,7 @@ define(function() {
   "use strict";
 
   // tracking auto-generated IDs
-  var counts = {};
+  var elementIDCounts = {};
 
   /**
    * Note: we're not using this as an object constructor,
@@ -67,19 +67,31 @@ define(function() {
       Ceci.log(element, argStr);
     };
 
-    element.emit = function (data, extra) {
-      if(element.endpoint) return;
-      if(element.broadcastChannel === Ceci.emptyChannel) return;
-      var e = new CustomEvent(element.broadcastChannel, {bubbles: true, detail: {
+    element.emit = function (type, data, extra) {
+      data = data || type;
+
+      if (element.endpoint) return;
+
+      var broadcastElement = element.querySelector('broadcast[from="' + type + '"]');
+
+      if (!broadcastElement) return;
+
+      var channel = broadcastElement.getAttribute('on');
+
+      if (!channel) return;
+
+      var e = new CustomEvent(channel, {bubbles: true, detail: {
         data: data,
         extra: extra
       }});
-      Ceci.log(element, "sends '"+  data.toString() + "' on "+ element.broadcastChannel + " channel", element.broadcastChannel);
+
+      Ceci.log(element, "sends '" + data.toString() + "' on "+ channel + " channel", channel);
+
       element.dispatchEvent(e);
+
       if(element.onOutputGenerated) {
-        element.onOutputGenerated(element.broadcastChannel, data);
+        element.onOutputGenerated(channel, data);
       }
-      console.log(element.id + " -> " + element.broadcastChannel);
     };
 
     // init must always be a function, even if it does nothing
@@ -98,41 +110,46 @@ define(function() {
     }
 
     // pass along the broadcast property
-    element.broadcast = buildProperties.broadcast;
-
-    // allow for event cleanup when removing an element from the DOM
-    element._flatheadListeners = [];
+    element.broadcast = buildProperties.broadcast || element.emit;
 
     // add an event listener and record it got added by this element
-    element.setupEventListener = function(item, event, fn) {
-      item.addEventListener(event, fn);
-      element._flatheadListeners.push({
-        item: item,
-        event: event,
-        fn: fn
-      });
+    element.setupEventListener = function(item, event, fn, listenerName) {
+      if (event) {
+        var listenElement = element.querySelector('listen[on="' + event + '"][for="' + listenerName + '"]');
+
+        if (!listenElement) {
+          listenElement = document.createElement('listen');
+          element.appendChild(listenElement);
+        }
+        else {
+          item.removeEventListener(event, listenElement._listeningFunction);
+        }
+
+        listenElement.setAttribute('on', event);
+        listenElement.setAttribute('for', listenerName);
+        listenElement._listeningFunction = fn;
+        listenElement._listeningItem = item;
+
+        item.addEventListener(event, fn);
+      }
     };
 
     // remove a specific event listener associated with this element
-    element.discardEventListener = function(item, event, fn) {
-      var listeners = element._flatheadListeners;
-      for(var i=listeners.length-1, e; i>=0; i--) {
-        e = listeners[i];
-        if (e.item === item && e.event === event && e.fn === fn) {
-          item.removeEventListener(event, fn);
-          listeners.splice(i,1);
-          return;
-        }
+    element.discardEventListener = function(item, event, listenerName) {
+      var subscriptionElement = element.querySelector('listen[on="' + event + '"][for="' + listenerName + '"]');
+      if (subscriptionElement) {
+        element.removeChild(subscriptionElement);
+        item.removeEventListener(event, element._listeningFunction);
       }
     };
 
     // remove this element from the DOM, after cleaning up all
     // outstanding event listeners
     element.removeSafely = function() {
-      element._flatheadListeners.forEach(function(e) {
-        e.item.removeEventListener(e.event, e.fn);
+      Array.prototype.forEach.call(element.querySelectorAll('listen'), function (listenElement) {
+        listenElement._listeningItem.removeEventListener(listenElement.getAttribute('on'), listenElement._listeningFunction);
       });
-      element._flatheadListeners = [];
+
       if (element.parentNode) {
         element.parentNode.removeChild(element);
       }
@@ -184,7 +201,7 @@ define(function() {
     enumerable: false,
     configurable: false,
     writable: false,
-    value: "false"
+    value: false
   });
   Ceci._components = {};
 
@@ -203,42 +220,38 @@ define(function() {
   };
 
   /**
-   * This function is only called once, when an element
-   * is instantiated, and returns the name of the channel
-   * the element should be listening to "by default".
-   */
-  function getBroadcastChannel(element, original) {
-    // get <broadcast> element information
-    var broadcast = original.getElementsByTagName('broadcast')[0];
-    if (broadcast){
-      var channel = broadcast.getAttribute("on");
-      if (channel) {
-        return channel;
-      }
-    }
-    // if no broadcast channel is specified, but this is a broadcast
-    // element, use the default channel. Otherwise, don't broadcast
-    return (element.broadcast ? Ceci._defaultBroadcastChannel : Ceci.emptyChannel);
-  }
-
-  /**
    * Set up the broadcasting behaviour for an element, based
    * on the broadcasting properties it inherited from the
    * <element> component master.
    */
-  function setupBroadcastLogic(element, original) {
-    // get <broadcast> rules from the original declaration
-    element.broadcastChannel = getBroadcastChannel(element, original);
-    if(element.onBroadcastChannelChanged) {
-      element.onBroadcastChannelChanged(element.broadcastChannel);
-    }
+  function setupBroadcastLogic (element, original) {
     // set property on actual on-page element
-    element.setBroadcastChannel = function(channel) {
-      element.broadcastChannel = channel;
+    element.setBroadcast = function (channel, name) {
+      var broadcastElement;
+
+      broadcastElement = element.querySelector('broadcast[from="' + name + '"]');
+      if (channel) {
+        if (!broadcastElement) {
+          broadcastElement = document.createElement('broadcast');
+          element.appendChild(broadcastElement);
+        }
+        broadcastElement.setAttribute('on', channel);
+        broadcastElement.setAttribute('from', name);
+      }
+      else if (!channel && broadcastElement) {
+        element.removeChild(broadcastElement);
+      }
+
       if(element.onBroadcastChannelChanged) {
-        element.onBroadcastChannelChanged(channel);
+        element.onBroadcastChannelChanged(channel, name);
       }
     };
+
+    // get <broadcast> rules from the original declaration
+    var broadcasts = original.querySelectorAll('broadcast');
+    Array.prototype.forEach.call(broadcasts, function (broadcastElement) {
+      element.setBroadcast(broadcastElement.getAttribute('on'), broadcastElement.getAttribute('from'));
+    });
   }
 
   /**
@@ -279,133 +292,48 @@ define(function() {
    * on the broadcasting properties it inherited from the
    * <element> component master.
    */
+
   function setupSubscriptionLogic(element, original) {
     // get <listen> rules from the original declaration
-    element.subscriptions = getSubscriptions(element, original);
-    if(element.onSubscriptionChannelChanged) {
-      element.subscriptions.forEach(function(s){
-        element.onSubscriptionChannelChanged(s.channel, s.listener);
-      });
-    }
+
     var generateListener = function(element, channel, listener) {
       return function(e) {
         if(e.target.id !== element.id) {
-          console.log(element.id + " <- " + channel + "/" + listener);
           var data = e.detail.data;
           var extra = e.detail.extra;
           var eventSource = e.target;
+
           element[listener](data, channel, extra, eventSource);
+
           if(element.onInputReceived) {
             element.onInputReceived(channel, data);
           }
         }
       };
     };
+
     // set properties on actual on-page element
     element.setSubscription = function(channel, listener) {
-      var append = true, fn;
-      element.subscriptions.forEach(function(s) {
-        if(s.listener === listener) {
-          // remove the old event listening
-          fn = element[listener].listeningFunction;
-          if(fn) {
-            console.log("removing "+s.channel+"/"+listener+" pair");
-            element.discardEventListener(document, s.channel, fn);
-          }
-          // update the channel
-          s.channel = channel;
-          // bind the new event listening
-          if(channel !== Ceci.emptyChannel) {
-            fn = generateListener(element, s.channel, s.listener);
-            console.log("adding "+s.channel+"/"+listener+" pair");
-            element.setupEventListener(document, s.channel, fn);
-          } else {
-            fn = false;
-          }
-          element[listener].listeningFunction = fn;
-          append = false;
-        }
-      });
-      if(append) {
-        fn = generateListener(element, channel, listener);
-        element[listener].listeningFunction = fn;
-        console.log("adding "+channel+"/"+listener+" pair");
-        element.setupEventListener(document, channel, fn);
-        element.subscriptions.push({
-          listener: listener,
-          channel: channel
-        });
+      if (channel) {
+        element.setupEventListener(document, channel, generateListener(element, channel, listener), listener);
       }
+      else {
+        element.discardEventListener(document, channel, listener);
+      }
+
       if(element.onSubscriptionChannelChanged) {
         element.onSubscriptionChannelChanged(channel, listener);
       }
     };
 
     element.removeSubscription = function(channel, listener) {
-      var filter = function(s) {
-        return !(s.channel === channel && s.listener === listener);
-      };
-      // single arg: remove listener, regardless of its channel
-      if(channel && !listener) {
-        listener = channel;
-        filter = function(s) {
-          return (s.listener !== listener);
-        };
-      }
-      element.subscriptions = element.subscriptions.filter(filter);
+      element.discardEventListener(document, channel, listener);
     };
 
-    element.subscriptions.forEach(function (s) {
-      var fn = generateListener(element, s.channel, s.listener);
-      if (element[s.listener]) {
-        element[s.listener].listeningFunction = fn;
-        element.setupEventListener(document, s.channel, fn);
-      }
+    getSubscriptions(element, original).forEach(function (s) {
+      element.setSubscription(s.channel, s.listener);
     });
   }
-
-  // describe an element as a terse JSON object
-  Ceci.dehydrate = function(element) {
-    return {
-      tagname: element.localName,
-      id: element.id,
-      broadcast: element.broadcastChannel,
-      listen: element.subscriptions.slice(),
-      attributes: (function() {
-        if (!element.editableAttributes) return [];
-        return element.editableAttributes.map(function(attribute) {
-          var value = element.getAttribute(attribute);
-          if(!value) return false;
-          return {
-            name: attribute,
-            value: value
-          };
-        }).filter(function(v) { return !!v; });
-      }())
-    };
-  };
-
-  /**
-   * Converts a JSON object into a regular object. For converting.
-   */
-  Ceci.rehydrate = function(description) {
-    var element = document.createElement(description.tagname);
-    element.id = description.id;
-    var content = "";
-    if(description.broadcast.channel !== Ceci.emptyChannel) {
-      content += '<broadcast on="'+description.broadcast+'"></broadcast>\n';
-    }
-    description.listen.forEach(function(listen) {
-      if(listen.channel !== Ceci.emptyChannel) {
-        content += '<listen on="'+listen.channel+'" for="'+listen.listener+'"></listne>\n';
-      }
-    });
-    element.innerHTML = content;
-    description.attributes.forEach(function(item) {
-      element.setAttribute(item.name, item.value);
-    });
-    return element;
-  };
 
   /**
    * Convert an element of tagname '...' based on the component
@@ -416,10 +344,20 @@ define(function() {
         originalElement = instance.cloneNode(true);
 
     // does this instance need an id?
-    if(!instance.id) {
+    if(!instance.id || instance !== document.querySelector('#' + instance.id)) {
       var ln = instance.localName.toLowerCase();
-      instance.id = ln + "-" + counts[ln]++;
+      var newId;
+      while (true) {
+        newId = ln + "-" + (elementIDCounts[ln]++);
+        if (!document.querySelector('#' + newId)) {
+          break;
+        }
+      }
+      instance.id = newId;
     }
+
+    // Really, really make sure it's there.
+    instance.setAttribute('id', instance.id);
 
     // cache pre-conversion content
     instance._innerHTML = instance.innerHTML;
@@ -433,7 +371,7 @@ define(function() {
 
     // if the <element> had a description block, bind this
     // to the instance as well, for future reference.
-    if (componentDefinition.description) {
+    if (componentDefinition.description && typeof instance.description === 'undefined') {
       var desc = componentDefinition.description.cloneNode(true);
       Object.defineProperty(instance, "description", {
         get: function() { return desc; },
@@ -443,7 +381,7 @@ define(function() {
 
     // if the <element> had a thumbnail block, bind this
     // to the instance as well, for future reference.
-    if (componentDefinition.thumbnail) {
+    if (componentDefinition.thumbnail && typeof instance.thumbnail === 'undefined') {
       var thumb = componentDefinition.thumbnail.cloneNode(true);
       Object.defineProperty(instance, "thumbnail", {
         get: function() { return thumb; },
@@ -491,8 +429,8 @@ define(function() {
         generator;
 
     var localName = element.getAttribute("name").toLowerCase();
-    if(!counts[localName]) {
-      counts[localName] = 1;
+    if(!elementIDCounts[localName]) {
+      elementIDCounts[localName] = 1;
     }
 
     try {
