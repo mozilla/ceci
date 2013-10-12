@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <link rel="component" type="text/ceci" href="//appmaker-components.herokuapp.com/package/all">
+    <link rel="component" type="text/ceci" href="http://localhost:5001/package/all">
     <link rel="component" type="text/ceci" href="components.html">
     <style>
       div.ceci-card:focus {
@@ -11,37 +11,31 @@
     </style>
   </head>
   <body>
-    <app-counter id="counter">
-    </app-counter>
-
     <div class="ceci-card">
-      <app-input id="input">
-        <broadcast on="blue">
-      </app-input>
-
-      <app-label id="label">
-        <listen on="blue" for="setValue">
-      </app-label>
-
-      <app-counter id="counter-global">
-        <listen on="blue" for="countUp">
-        <listen on="green" for="countUp">
-        <broadcast on="red">
-      </app-counter>
+      <div class="fixed-top"></div>
+      <div class="phone-canvas">
+        <app-button id="app-button-3" buttonLabel="Count Up" textColor="#FFFFFF" buttonColor="#4DB227">
+          <broadcast on="blue" from="click">
+          </broadcast>
+        </app-button>
+        <app-counter id="app-counter-1" countItem="brick">
+          <broadcast on="false"></broadcast>
+          <listen on="blue" for="countUp"></listen>
+          <listen on="purple" for="countDown"></listen>
+        </app-counter>
+        <app-button id="app-button-4" buttonLabel="Count Down" textColor="#FFFFFF" buttonColor="purple">
+          <broadcast on="purple" from="click">
+          </broadcast>
+        </app-button>
+      </div>
+      <div class="fixed-bottom drophere ui-sortable">
+      </div>
     </div>
 
-    <div class="ceci-card">
-      <app-counter id="counter-green">
-        <listen on="green" for="countUp">
-      </app-counter>
-
-      <app-test-documentation id="test-docs">
-    </div>
-
-    <script src="//cdnjs.cloudflare.com/ajax/libs/require.js/2.1.8/require.min.js"></script>
+    <script src="/vendor/requirejs/require.js"></script>
     <script>
       document.addEventListener("DOMContentLoaded", function() {
-        require(["ceci-cards"], function(Ceci) {
+        require(["ceci-app"], function(Ceci) {
           Ceci.load(function(){
             Ceci.convertContainer(document.getElementsByTagName('body')[0]);
           });
