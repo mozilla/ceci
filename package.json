@@ -4,7 +4,7 @@
   "description": "Ceci",
   "main": "devserver.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "grunt"
   },
   "repository": {
     "type": "git",
@@ -17,15 +17,13 @@
     "url": "https://github.com/mozilla/appmaker/issues"
   },
   "dependencies": {
-    "express": "~3.3.4"
+    "express": "~3.3.4",
+    "node-uuid": "~1.4.1"
   },
   "devDependencies": {
     "grunt": "~0.4.1",
     "grunt-contrib-jshint": "~0.6.3",
     "grunt-contrib-csslint": "~0.1.2",
     "grunt-cli": "~0.1.9"
-  },
-  "scripts": {
-    "test": "grunt"
   }
 }
