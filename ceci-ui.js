@@ -1,11 +1,11 @@
 define(["jquery", "ceci"], function($, Ceci) {
   "use strict";
 
-  var broadcastBlock = document.createElement("broadcast");
-  broadcastBlock.setAttribute("class","channel-visualisation broadcast-channels");
+  var broadcastBlock = document.createElement("div");
+  broadcastBlock.setAttribute("class", "channel-visualisation broadcast-channels");
 
-  var subscriptionBlock = document.createElement("listen");
-  subscriptionBlock.setAttribute("class","channel-visualisation subscription-channels");
+  var subscriptionBlock = document.createElement("div");
+  subscriptionBlock.setAttribute("class", "channel-visualisation subscription-channels");
 
   var channelDot = document.createElement("div");
   channelDot.setAttribute("class", "color dot");
@@ -42,7 +42,7 @@ define(["jquery", "ceci"], function($, Ceci) {
 
     // set relevant channel color, or remove if disabled
     var channelElement = cblock || element.querySelector(lsel);
-    channelElement.setAttribute("color",channel);
+    channelElement.setAttribute("color", channel || 'false');
     channelElement.setAttribute("title", listener ?  listener : "broadcast channel");
   };
 
@@ -163,8 +163,8 @@ define(["jquery", "ceci"], function($, Ceci) {
       return elementAttributes[attrName];
     };
 
-    element.onBroadcastChannelChanged = function(channel) {
-      setChannelIndicator(element, 'broadcast', channel);
+    element.onBroadcastChannelChanged = function(channel, name) {
+      setChannelIndicator(element, 'broadcast', channel, name);
       Ceci.fireChangeEvent();
     };
 
