@@ -16,7 +16,6 @@ define(["ceci-cards", "ceci-utils"], function(Ceci, Utils) {
    *
    */
   function getUuid(contextOrCallback, callback) {
-    alert('gettin uid');
     Utils.get('/store/uuid', function(data) {
       if (!callback){
         if (typeof contextOrCallback === 'function'){
