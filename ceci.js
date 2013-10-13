@@ -32,6 +32,8 @@ define(function() {
 
     element.subscriptionListeners = [];
 
+    element.broadcastChannels = buildProperties.broadcasts ? buildProperties.broadcasts.slice() : [];
+
     if(buildProperties.listeners) {
       Object.keys(buildProperties.listeners).forEach(function (listener) {
         var entry = buildProperties.listeners[listener];
@@ -247,10 +249,25 @@ define(function() {
       }
     };
 
+    // These are the broadcast types listed in the component definition
+    var broadcastChannels = element.broadcastChannels.slice();
+
     // get <broadcast> rules from the original declaration
     var broadcasts = original.querySelectorAll('broadcast');
     Array.prototype.forEach.call(broadcasts, function (broadcastElement) {
-      element.setBroadcast(broadcastElement.getAttribute('on'), broadcastElement.getAttribute('from'));
+      var broadcastName = broadcastElement.getAttribute('from');
+      var broadcastIndex = broadcastChannels.indexOf(broadcastName);
+
+      // If the broadcast type was in those defined by the component, process it, and remove it from the list
+      if (broadcastIndex > -1) {
+        element.setBroadcast(broadcastElement.getAttribute('on'), broadcastName);
+        broadcastChannels.splice(broadcastIndex, 1);
+      }
+    });
+
+    // Set whatever is left to defaults
+    broadcastChannels.forEach(function (broadcastName) {
+      element.setBroadcast(Ceci._defaultBroadcastChannel, broadcastName);
     });
   }
 
