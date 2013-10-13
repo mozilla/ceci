@@ -1,0 +1,54 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <link rel="component" type="text/ceci" href="http://localhost:5001/package/all">
+    <link rel="component" type="text/ceci" href="components.html">
+    <style>
+      div.ceci-card:focus {
+        background-color: orange;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="ceci-card">
+      <div class="fixed-top"></div>
+      <div class="phone-canvas">
+        <app-button id="app-button-3" buttonLabel="Count Up" textColor="#FFFFFF" buttonColor="#4DB227">
+          <broadcast on="blue" from="click">
+          </broadcast>
+        </app-button>
+        <app-counter id="app-counter-1" countItem="brick">
+          <broadcast on="false"></broadcast>
+          <listen on="blue" for="countUp"></listen>
+          <listen on="purple" for="countDown"></listen>
+        </app-counter>
+        <app-button id="app-button-4" buttonLabel="Count Down" textColor="#FFFFFF" buttonColor="purple">
+          <broadcast on="purple" from="click">
+          </broadcast>
+        </app-button>
+      </div>
+      <div class="fixed-bottom drophere ui-sortable">
+      </div>
+    </div>
+
+    <script src="/vendor/requirejs/require.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function() {
+        requirejs.config({
+          "baseUrl": "/",
+          "paths": {
+            "jquery": "vendor/jquery/jquery.min",
+            "jquery-ui": "vendor/jqueryui-amd/jqueryui-amd"
+          },
+        });
+
+        require(["ceci-app", "ceci-ui"], function(Ceci) {
+          Ceci.load(function(){
+            Ceci.convertContainer(document.getElementsByTagName('body')[0]);
+          });
+        });
+      });
+    </script>
+  </body>
+</html>
