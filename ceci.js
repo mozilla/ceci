@@ -117,15 +117,20 @@ define(function() {
 
     // add an event listener and record it got added by this element
     element.setupEventListener = function(item, event, fn, listenerName) {
-      if (event) {
-        var listenElement = element.querySelector('listen[on="' + event + '"][for="' + listenerName + '"]');
+      var listenElement = element.querySelector('listen[for="' + listenerName + '"]');
+      var oldChannel;
 
+      if (listenElement) {
+        oldChannel = listenElement.getAttribute('on');
+        if (oldChannel) {
+          item.removeEventListener(oldChannel, listenElement._listeningFunction);
+        }
+      }
+
+      if (event) {
         if (!listenElement) {
           listenElement = document.createElement('listen');
           element.appendChild(listenElement);
-        }
-        else {
-          item.removeEventListener(event, listenElement._listeningFunction);
         }
 
         listenElement.setAttribute('on', event);
@@ -139,10 +144,11 @@ define(function() {
 
     // remove a specific event listener associated with this element
     element.discardEventListener = function(item, event, listenerName) {
-      var subscriptionElement = element.querySelector('listen[on="' + event + '"][for="' + listenerName + '"]');
+      var subscriptionElement = element.querySelector('listen[for="' + listenerName + '"]');
       if (subscriptionElement) {
+        event = event || subscriptionElement.getAttribute('on');
+        item.removeEventListener(event, subscriptionElement._listeningFunction);
         element.removeChild(subscriptionElement);
-        item.removeEventListener(event, element._listeningFunction);
       }
     };
 
