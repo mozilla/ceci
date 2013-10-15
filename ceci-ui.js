@@ -33,9 +33,8 @@ define(["jquery", "ceci"], function($, Ceci) {
 
     if(!element.querySelector(lsel)) {
       cblock = channelBlock.cloneNode(true);
-      if(listener) {
+      if (listener) {
         cblock.classList.add(listener);
-        cblock.innerHTML = listener;
       }
       element.querySelector(sel).appendChild(cblock);
     }
