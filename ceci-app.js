@@ -44,6 +44,10 @@ define(["ceci-cards", "ceci-utils"], function(Ceci, Utils) {
 
   var App = function(params) {
 
+    if (Array.isArray(params.defaultChannels)) {
+      Ceci.defaultChannels = params.defaultChannels.slice();
+    }
+
     //TODO: This is faking the app "knowing" about cards, when we refactor, this should go
     if (params.onCardChange){
       Ceci.onCardChange(params.onCardChange);
@@ -89,12 +93,12 @@ define(["ceci-cards", "ceci-utils"], function(Ceci, Utils) {
 
       var t = this;
 
-      if (typeof callback === 'function'){
+      if (typeof callback === 'function') {
         callback(component);
       }
       Ceci.convertElement(component, function(){
         t.componentAddedCallback(component);
-      });
+      }, true);
     };
 
     this.addCard = function (){

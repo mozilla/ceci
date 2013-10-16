@@ -28,11 +28,9 @@ define(function() {
       });
     }
 
-    element.defaultListener = buildProperties.defaultListener;
-
-    element.subscriptionListeners = [];
-
-    element.broadcastChannels = buildProperties.broadcasts ? buildProperties.broadcasts.slice() : [];
+    element._defaultListener = buildProperties.defaultListener;
+    element._listens = [];
+    element._broadcasts = buildProperties.broadcasts;
 
     if(buildProperties.listeners) {
       Object.keys(buildProperties.listeners).forEach(function (listener) {
@@ -49,7 +47,7 @@ define(function() {
               console.log(e.stack);
             }
           };
-          element.subscriptionListeners.push(listener);
+          element._listens.push(listener);
         } else {
           throw "Listener \"" + listener + "\" is not a function.";
         }
@@ -184,7 +182,7 @@ define(function() {
   };
 
   // administrative values and objects
-  Ceci._reserved = ['init', 'listeners', 'defaultListener'];
+  Ceci._reserved = ['init', 'listeners', 'defaultListener', 'broadcasts'];
   Ceci._plugins = {
     constructor: [],
     onload: [],
@@ -214,6 +212,8 @@ define(function() {
   });
   Ceci._components = {};
 
+  Ceci.defaultChannels = [Ceci.emptyChannel];
+
   /**
    * Register a plugin into Ceci
    */
@@ -233,7 +233,7 @@ define(function() {
    * on the broadcasting properties it inherited from the
    * <element> component master.
    */
-  function setupBroadcastLogic (element, original) {
+  function setupBroadcastLogic (element, original, useDefaults) {
     // set property on actual on-page element
     element.setBroadcast = function (channel, name) {
       var broadcastElement;
@@ -257,58 +257,36 @@ define(function() {
     };
 
     // These are the broadcast types listed in the component definition
-    var broadcastChannels = element.broadcastChannels.slice();
-
-    // get <broadcast> rules from the original declaration
-    var broadcasts = original.querySelectorAll('broadcast');
-    Array.prototype.forEach.call(broadcasts, function (broadcastElement) {
-      var broadcastName = broadcastElement.getAttribute('from');
-      var broadcastIndex = broadcastChannels.indexOf(broadcastName);
-
-      // If the broadcast type was in those defined by the component, process it, and remove it from the list
-      if (broadcastIndex > -1) {
-        element.setBroadcast(broadcastElement.getAttribute('on'), broadcastName);
-        broadcastChannels.splice(broadcastIndex, 1);
-      }
-    });
+    var broadcastTypes = Object.keys(element._broadcasts);
 
     // Set whatever is left to defaults
-    broadcastChannels.forEach(function (broadcastName) {
-      element.setBroadcast(Ceci._defaultBroadcastChannel, broadcastName);
-    });
-  }
+    if (useDefaults) {
+      var channelsLeft = Ceci.defaultChannels.slice();
+      broadcastTypes.forEach(function (broadcastName) {
+        if (element._broadcasts[broadcastName].on) {
+          if (channelsLeft.length === 0) {
+            channelsLeft = Ceci.defaultChannels.slice();
+          }
+          element.setBroadcast(channelsLeft.shift(), broadcastName);
+        }
+        else {
+          element.setBroadcast(Ceci.emptyChannel, broadcastName);
+        }
+      });
+    }
+    else {
+      broadcastTypes.forEach(function (broadcastName) {
+        var originalBroadcast = original.querySelector('broadcast[from="' + broadcastName + '"]');
+        if (originalBroadcast && originalBroadcast.hasAttribute('on')) {
+          element.setBroadcast(originalBroadcast.getAttribute('on'), broadcastName);
+        }
+        else {
+          element.setBroadcast(Ceci.emptyChannel, broadcastName);
+        }
+      });
+    }
 
-  /**
-   * This function is only called once, when an element is
-   * instantiated, and returns the list of channel subscriptions
-   * this element is supposed to have, "by default".
-   */
-  function getSubscriptions(element, original) {
-    var listenElements = original.getElementsByTagName('listen');
-    listenElements = Array.prototype.slice.call(listenElements);
-
-    var predefinedListeners = [];
-    var subscriptions = listenElements.map(function (e) {
-      predefinedListeners.push(e.getAttribute("for"));
-      return {
-        listener: e.getAttribute("for"),
-        channel: e.getAttribute("on")
-      };
-    });
-
-    element.subscriptionListeners.forEach(function(listener) {
-      if(predefinedListeners.indexOf(listener) !== -1) return;
-      var subscription = {
-        channel: Ceci.emptyChannel,
-        listener: listener
-      };
-      if(listener === element.defaultListener) {
-        subscription.channel = Ceci._defaultListeningChannel;
-      }
-      subscriptions.push(subscription);
-    });
-
-    return subscriptions;
+    element._broadcasts = broadcastTypes;
   }
 
   /**
@@ -317,7 +295,7 @@ define(function() {
    * <element> component master.
    */
 
-  function setupSubscriptionLogic(element, original) {
+  function setupSubscriptionLogic(element, original, useDefaults) {
     // get <listen> rules from the original declaration
 
     var generateListener = function(element, channel, listener) {
@@ -354,16 +332,38 @@ define(function() {
       element.discardEventListener(document, channel, listener);
     };
 
-    getSubscriptions(element, original).forEach(function (s) {
-      element.setSubscription(s.channel, s.listener);
-    });
+
+    // Run through element's listeners to see if any of them should be hooked up
+    if (useDefaults) {
+      element._listens.forEach(function (listenName) {
+        if (element._defaultListener === listenName) {
+          element.setSubscription(Ceci.defaultChannels[0], listenName);
+        }
+        else {
+          element.setSubscription(Ceci.emptyChannel, listenName);
+        }
+      });
+    }
+    else {
+      element._listens.forEach(function (listenName) {
+        // Check if a corresponding <listen> already exists
+        var existingElement = original.querySelector('listen[for="' + listenName + '"]');
+        if (existingElement && existingElement.hasAttribute('on')) {
+          element.setSubscription(existingElement.getAttribute('on'), listenName);
+          original.removeChild(existingElement);
+        }
+        else {
+          element.setSubscription(Ceci.emptyChannel, listenName);
+        }
+      });
+    }
   }
 
   /**
    * Convert an element of tagname '...' based on the component
    * description for the custom element '...'
    */
-  Ceci.convertElement = function (instance, completedHandler, noWiring) {
+  Ceci.convertElement = function (instance, completedHandler, useDefaults) {
     var componentDefinition = Ceci._components[instance.localName],
         originalElement = instance.cloneNode(true);
 
@@ -418,10 +418,8 @@ define(function() {
     // set up the hook for post constructor callbacks
     var finalize = function() {
       finalize.called = true;
-      if (!noWiring) {
-        setupBroadcastLogic(instance, originalElement);
-        setupSubscriptionLogic(instance, originalElement);
-      }
+      setupBroadcastLogic(instance, originalElement, useDefaults);
+      setupSubscriptionLogic(instance, originalElement, useDefaults);
       /*
        * "t" has been set up to be either an instance of Ceci.App
        * or something we don't care about. It's a bit hacky, but
@@ -545,7 +543,8 @@ define(function() {
 
   Ceci.convertContainer = function (container, convertElementCalback) {
     Object.keys(Ceci._components).forEach(function(name){
-      Array.prototype.forEach.call(container.querySelectorAll(name), function (element){
+      var matchingComponents = container.querySelectorAll(name);
+      Array.prototype.forEach.call(matchingComponents, function (element) {
         Ceci.convertElement(element, convertElementCalback);
       });
     });
