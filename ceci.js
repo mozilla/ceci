@@ -387,7 +387,7 @@ define(function() {
     instance._innerText = instance.innerText;
 
     // apply the element's template
-    if (componentDefinition.template){
+    if (componentDefinition.template) {
       // TODO: should we do a <content></content> replacement?
       instance.innerHTML = componentDefinition.template.innerHTML;
     }
@@ -449,11 +449,6 @@ define(function() {
         script = element.querySelector('script[type="text/ceci"]'),
         generator;
 
-    var localName = element.getAttribute("name").toLowerCase();
-    if(!elementIDCounts[localName]) {
-      elementIDCounts[localName] = 1;
-    }
-
     try {
       generator = new Function("Ceci", "return function(callback) {" + script.innerHTML+ "}");
     }
@@ -479,15 +474,30 @@ define(function() {
       friends = friendsBlock.innerHTML.split(',');
     }
 
-    // Store this element's defining features
-    // so that we can reference them when an element
-    // with the corresponding tagname is user.
-    Ceci._components[name] = {
+    Ceci.registerComponent(name, {
       constructor: constructor,
       description: description,
       thumbnail: thumbnail,
       friends: friends,
       template: template
+    });
+  };
+
+  Ceci.registerComponent = function (name, registerOptions) {
+    var localName = name.toLowerCase();
+    if (!elementIDCounts[localName]) {
+      elementIDCounts[localName] = 1;
+    }
+
+    // Store this element's defining features
+    // so that we can reference them when an element
+    // with the corresponding tagname is user.
+    Ceci._components[name] = {
+      constructor: registerOptions.constructor || function () {},
+      description: registerOptions.description,
+      thumbnail: registerOptions.thumbnail,
+      friends: registerOptions.friends || [],
+      template: registerOptions.template
     };
   };
 
@@ -540,6 +550,13 @@ define(function() {
     Array.prototype.forEach.call(ceciLinks, loadComponents);
   };
 
+  Ceci.convertElementInContainer = function (elementName, container, convertElementCalback) {
+    var matchingComponents = container.querySelectorAll(elementName);
+    Array.prototype.forEach.call(matchingComponents, function (element) {
+      Ceci.convertElement(element, convertElementCalback);
+    });
+  };
+
   Ceci.convertContainer = function (container, convertElementCalback) {
     Object.keys(Ceci._components).forEach(function(name){
       var matchingComponents = container.querySelectorAll(name);
@@ -566,6 +583,13 @@ define(function() {
   };
 
   Ceci.LOG_WTF = "WTF";
+
+  // Expose Ceci to that other tools can use all of its virtues
+  window.Ceci = Ceci;
+
+  // Tell other things that Ceci has loaded and it's ready to use.
+  var e = new CustomEvent('ceciready', {bubbles: true, detail: {}});
+  document.dispatchEvent(e);
 
   // and lastly, an AMD module return
   return Ceci;
