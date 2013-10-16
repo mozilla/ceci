@@ -96,7 +96,7 @@ define(["jquery", "ceci"], function($, Ceci) {
     }
 
     element.addDataBubble = function(element, direction, data) {
-      var timeout = (direction === "out" ? 400 : 1200);
+      var timeout = (direction === "out" ? 0 : signalSpeed * 1000);
       setTimeout(function() {
         var bubble = document.createElement("div");
         $(bubble).text(data).addClass("bubblepopup").addClass("bubblepop");
