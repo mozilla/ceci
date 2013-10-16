@@ -30,7 +30,7 @@ define(function() {
 
     element._defaultListener = buildProperties.defaultListener;
     element._defaultBroadcasts = buildProperties.defaultBroadcasts || [];
-    element._listens = [];
+    element._listeners = [];
     element._broadcasts = buildProperties.broadcasts || [];
 
     if(buildProperties.listeners) {
@@ -48,7 +48,7 @@ define(function() {
               console.log(e.stack);
             }
           };
-          element._listens.push(listener);
+          element._listeners.push(listener);
         } else {
           throw "Listener \"" + listener + "\" is not a function.";
         }
@@ -334,7 +334,7 @@ define(function() {
 
     // Run through element's listeners to see if any of them should be hooked up
     if (useDefaults) {
-      element._listens.forEach(function (listenName) {
+      element._listeners.forEach(function (listenName) {
         if (element._defaultListener === listenName) {
           element.setSubscription(Ceci.defaultChannels[0], listenName);
         }
@@ -344,7 +344,7 @@ define(function() {
       });
     }
     else {
-      element._listens.forEach(function (listenName) {
+      element._listeners.forEach(function (listenName) {
         // Check if a corresponding <listen> already exists
         var existingElement = original.querySelector('listen[for="' + listenName + '"]');
         if (existingElement && existingElement.hasAttribute('on')) {
