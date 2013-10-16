@@ -29,8 +29,9 @@ define(function() {
     }
 
     element._defaultListener = buildProperties.defaultListener;
+    element._defaultBroadcasts = buildProperties.defaultBroadcasts || [];
     element._listens = [];
-    element._broadcasts = buildProperties.broadcasts;
+    element._broadcasts = buildProperties.broadcasts || [];
 
     if(buildProperties.listeners) {
       Object.keys(buildProperties.listeners).forEach(function (listener) {
@@ -257,13 +258,13 @@ define(function() {
     };
 
     // These are the broadcast types listed in the component definition
-    var broadcastTypes = Object.keys(element._broadcasts);
+    var broadcastTypes = element._broadcasts;
 
     // Set whatever is left to defaults
     if (useDefaults) {
       var channelsLeft = Ceci.defaultChannels.slice();
       broadcastTypes.forEach(function (broadcastName) {
-        if (element._broadcasts[broadcastName].on) {
+        if (element._defaultBroadcasts.indexOf(broadcastName) > -1) {
           if (channelsLeft.length === 0) {
             channelsLeft = Ceci.defaultChannels.slice();
           }
@@ -285,8 +286,6 @@ define(function() {
         }
       });
     }
-
-    element._broadcasts = broadcastTypes;
   }
 
   /**
