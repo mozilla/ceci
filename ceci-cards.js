@@ -21,6 +21,7 @@ define(["ceci"], function(Ceci) {
       card.remove();
     });
     cards = [];
+    Ceci.fireChangeEvent();
   };
 
   function showCard(card) {
@@ -160,6 +161,7 @@ define(["ceci"], function(Ceci) {
     container.appendChild(card);
     processCard(card);
     Ceci.convertContainer(card, elementCallback);
+    Ceci.fireChangeEvent();
   };
 
   function convertCards() {

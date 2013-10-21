@@ -99,6 +99,7 @@ define(["ceci-cards", "ceci-utils"], function(Ceci, Utils) {
       Ceci.convertElement(component, function(){
         t.componentAddedCallback(component);
       }, true);
+      Ceci.fireChangeEvent();
     };
 
     this.addCard = function (){
