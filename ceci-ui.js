@@ -45,55 +45,9 @@ define(["jquery", "ceci"], function($, Ceci) {
     channelElement.setAttribute("title", listener ?  listener : "broadcast channel");
   };
 
-  var CeciUI = function(element, def) {
-    var elementAttributes = {},
-        editableAttributes = [];
-
-    var bindAttributeChanging = function(target, attrName, fallthrough) {
-      // value tracking as "real" value
-      var v = false;
-
-      Object.defineProperty(target, attrName, {
-        enumerable: false,
-        configurable: false,
-        get: function() {
-          return v;
-        },
-        set: function(v) {
-          target.setAttribute(attrName, v);
-        }
-      });
-
-      // feedback and mutation observing based on HTML attribute
-      var handler = function(mutations) {
-        mutations.forEach(function(mutation) {
-          v = target.getAttribute(attrName);
-          if (fallthrough) {
-            fallthrough.call(target, v);
-          }
-          Ceci.fireChangeEvent();
-        });
-      };
-
-      var observer = new MutationObserver(handler);
-      var config = { attributes: true, attributeFilter: [attrName.toLowerCase()] };
-
-      observer.observe(target, config);
-    };
-
-    if (def.editable) {
-      Object.keys(def.editable).forEach(function (key) {
-        var props = def.editable[key];
-        bindAttributeChanging(element, key, props.postset);
-        editableAttributes.push(key);
-        var eak = {};
-        Object.keys(props).forEach(function(pkey) {
-          if (pkey === "postset") return;
-          eak[pkey] = props[pkey];
-        });
-        elementAttributes[key] = eak;
-      });
-    }
+  var CeciUI = function (element, definition, attributes) {
+    var elementAttributes = attributes.elementAttributes;
+    var editableAttributes = attributes.editableAttributes;
 
     element.addDataBubble = function(element, direction, data) {
       var timeout = (direction === "out" ? 0 : signalSpeed * 1000);
