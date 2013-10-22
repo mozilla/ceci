@@ -176,9 +176,11 @@ define(function() {
       Ceci.elementWantsAttention(this);
     };
 
+    var attributes = Ceci.setupAttributes(element, buildProperties);
+
     // run any plugins that hook into the constructor
     Ceci._plugins.constructor.forEach(function(plugin) {
-      plugin(element, buildProperties);
+      plugin(element, buildProperties, attributes);
     });
   };
 
@@ -564,6 +566,62 @@ define(function() {
         Ceci.convertElement(element, convertElementCalback);
       });
     });
+  };
+
+  Ceci.bindAttributeChanging = function (element, attrName, fallthrough) {
+    // value tracking as "real" value
+    var v = false;
+
+    Object.defineProperty(element, attrName, {
+      enumerable: false,
+      configurable: false,
+      get: function() {
+        return v;
+      },
+      set: function(v) {
+        element.setAttribute(attrName, v);
+      }
+    });
+
+    // feedback and mutation observing based on HTML attribute
+    var handler = function(mutations) {
+      mutations.forEach(function(mutation) {
+        v = element.getAttribute(attrName);
+        if (fallthrough) {
+          fallthrough.call(element, v);
+        }
+        Ceci.fireChangeEvent();
+      });
+    };
+
+    var observer = new MutationObserver(handler);
+    var config = { attributes: true, attributeFilter: [attrName.toLowerCase()] };
+
+    observer.observe(element, config);
+  };
+
+  Ceci.setupAttributes = function (element, definition) {
+    var elementAttributes = {},
+        editableAttributes = [];
+
+    if (definition.editable) {
+      Object.keys(definition.editable).forEach(function (key) {
+        var props = definition.editable[key];
+        Ceci.bindAttributeChanging(element, key, props.postset);
+        editableAttributes.push(key);
+        var eak = {};
+        Object.keys(props).forEach(function(pkey) {
+          if (pkey === "postset") return;
+          eak[pkey] = props[pkey];
+        });
+        elementAttributes[key] = eak;
+      });
+    }
+
+    return {
+      elementAttributes: elementAttributes,
+      editableAttributes: editableAttributes
+    };
   };
 
   Ceci.log = function(element, message, channel, severity) {
