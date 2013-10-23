@@ -114,6 +114,15 @@ define(["ceci-cards", "ceci-utils"], function(Ceci, Utils) {
       return cardClone;
     };
 
+    this.removeCard = function(card){
+      Ceci.removeCard(card, true);
+      if (Ceci.cardCount() === 0){
+        this.addCard();
+      }
+      Ceci.fireChangeEvent();
+    };
+
+
     this.getPortableCardTree = function (card) {
 
       function cleanAttributes (element, params) {
