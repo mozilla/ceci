@@ -30,7 +30,7 @@ define(["ceci"], function(Ceci) {
 
   Ceci.renameCardsSequentially = function(container){
     Array.prototype.forEach.call(container.querySelectorAll("." + cardClass), function(element, i){
-      element.setAttribute('id', cardClass + (i + 1));
+      element.setAttribute('id', cardClass + "-" + (i + 1));
     });
   };
 
