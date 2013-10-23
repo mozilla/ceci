@@ -20,11 +20,18 @@ define(["ceci"], function(Ceci) {
         element.removeSafely();
       }
     });
+
     card.remove();
 
     if (!smotherChangeEvent){
       Ceci.fireChangeEvent();
     }
+  };
+
+  Ceci.renameCardsSequentially = function(container){
+    Array.prototype.forEach.call(container.querySelectorAll("." + cardClass), function(element, i){
+      element.setAttribute('id', cardClass + (i + 1));
+    });
   };
 
   Ceci.clearCards = function(){

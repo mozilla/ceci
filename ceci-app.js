@@ -128,6 +128,7 @@ define(["ceci-cards", "ceci-utils"], function(Ceci, Utils) {
 
     this.removeCard = function(card){
       Ceci.removeCard(card, true);
+      Ceci.renameCardsSequentially(this.container);
       if (Ceci.cardCount() === 0){
         this.addCard();
       }
