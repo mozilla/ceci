@@ -62,7 +62,7 @@ define(["ceci-cards", "ceci-utils"], function(Ceci, Utils) {
 
     // generate a unique id that increments per tag ('moz-button-1', 'moz-button-2', etc.)
     this.tagids = {};
-    this.generateTagId = function (tagName) {
+    this.generateTagId = function(tagName) {
       if (!this.tagids[tagName]){
         this.tagids[tagName] = 0;
       }
@@ -87,7 +87,7 @@ define(["ceci-cards", "ceci-utils"], function(Ceci, Utils) {
       return this.getPortableAppTree().innerHTML;
     };
 
-    this.addComponent = function (tagName, callback) {
+    this.addComponent = function(tagName, callback) {
       var component = document.createElement(tagName);
       component.setAttribute('id', this.generateTagId(tagName));
 
@@ -102,12 +102,12 @@ define(["ceci-cards", "ceci-utils"], function(Ceci, Utils) {
       Ceci.fireChangeEvent();
     };
 
-    this.addCard = function (){
+    this.addCard = function(){
       var card = Ceci.createCard(this.container);
       return card;
     };
 
-    this.duplicateCard = function (card) {
+    this.duplicateCard = function(card) {
       var cardClone = card.cloneNode(true);
       this.getPortableCardTree(cardClone);
       Ceci.addCard(this.container, cardClone, this.componentAddedCallback);
@@ -116,7 +116,7 @@ define(["ceci-cards", "ceci-utils"], function(Ceci, Utils) {
 
     // This is clearly a hack, we should just be doing new App(...),
     // but it's too much work to make that right right now.
-    this.clear = function () {
+    this.clear = function() {
       var t = this;
       getUuid(this, function(id){
         t.id = id;
@@ -131,11 +131,12 @@ define(["ceci-cards", "ceci-utils"], function(Ceci, Utils) {
       if (Ceci.cardCount() === 0){
         this.addCard();
       }
+
       Ceci.fireChangeEvent();
     };
 
 
-    this.getPortableCardTree = function (card) {
+    this.getPortableCardTree = function(card) {
 
       function cleanAttributes (element, params) {
         params = params ? params : {};
@@ -163,7 +164,7 @@ define(["ceci-cards", "ceci-utils"], function(Ceci, Utils) {
           });
         }
 
-        Array.prototype.forEach.call(element.attributes, function (attr) {
+        Array.prototype.forEach.call(element.attributes, function(attr) {
           if (rejectAll) {
             element.removeAttribute(attr.name);
           }
@@ -199,7 +200,7 @@ define(["ceci-cards", "ceci-utils"], function(Ceci, Utils) {
         }
       }
 
-      Array.prototype.forEach.call(card.children, function (section) {
+      Array.prototype.forEach.call(card.children, function(section) {
         Array.prototype.forEach.call(section.children, cleanAppChildren);
       });
 
@@ -208,14 +209,14 @@ define(["ceci-cards", "ceci-utils"], function(Ceci, Utils) {
         var broadcastElements = Array.prototype.slice.call(sectionContainer.querySelectorAll('broadcast'));
         var subscriptionElements = listenElements.concat(broadcastElements);
 
-        subscriptionElements.forEach(function (subscriptionElement) {
+        subscriptionElements.forEach(function(subscriptionElement) {
           subscriptionElement.innerHTML = '';
           if (subscriptionElement.parentNode.localName.indexOf('app-') !== 0) {
             subscriptionElement.parentNode.removeChild(subscriptionElement);
           }
         });
 
-        function cleanComponentElement (componentElement) {
+        function cleanComponentElement(componentElement) {
           if (componentElement.localName.indexOf('app-') === 0 || ['broadcast', 'listen'].indexOf(componentElement.localName) > -1){
             Array.prototype.slice.call(componentElement.children).forEach(cleanComponentElement);
           }
@@ -227,14 +228,14 @@ define(["ceci-cards", "ceci-utils"], function(Ceci, Utils) {
         Array.prototype.slice.call(sectionContainer.children).forEach(cleanComponentElement);
       }
 
-      ['.fixed-top', '.phone-canvas', '.fixed-bottom'].forEach(function (sectionSelector) {
+      ['.fixed-top', '.phone-canvas', '.fixed-bottom'].forEach(function(sectionSelector) {
         cleanSection(card.querySelector(sectionSelector));
       });
 
       return card;
     };
 
-    this.getPortableAppTree = function () {
+    this.getPortableAppTree = function() {
       var appContainerClone = this.container.cloneNode(true);
       var cards = appContainerClone.querySelectorAll('.ceci-card');
 
@@ -247,8 +248,8 @@ define(["ceci-cards", "ceci-utils"], function(Ceci, Utils) {
       var t = this;
       this.id = id;
 
-      Ceci.load.call(t, function (components) {
-        Ceci.convertContainer(t.container, function (element){
+      Ceci.load.call(t, function(components) {
+        Ceci.convertContainer(t.container, function(element){
           element.setAttribute('id', t.generateTagId(element.tagName.toLowerCase()));
           t.componentAddedCallback(element);
         });
