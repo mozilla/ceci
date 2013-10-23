@@ -9,16 +9,27 @@ define(["ceci"], function(Ceci) {
   var cards = [];
   Ceci.currentCard = null;
 
+  Ceci.cardCount = function(){
+    return cards.length;
+  };
+
+  Ceci.removeCard = function(card, smotherChangeEvent){
+    //TODO: This might be a bit of a heavy-handed approach to this.
+    Array.prototype.forEach.call(card.querySelectorAll('*'), function(element){
+      if (element.removeSafely){
+        element.removeSafely();
+      }
+    });
+    card.remove();
+
+    if (!smotherChangeEvent){
+      Ceci.fireChangeEvent();
+    }
+  };
+
   Ceci.clearCards = function(){
     cards.forEach(function(card){
-
-      //TODO: This might be a bit of a heavy-handed approach to this.
-      Array.prototype.forEach.call(card.querySelectorAll('*'), function(element){
-        if (element.removeSafely){
-          element.removeSafely();
-        }
-      });
-      card.remove();
+      Ceci.removeCard(card, true);
     });
     cards = [];
     Ceci.fireChangeEvent();

@@ -114,6 +114,27 @@ define(["ceci-cards", "ceci-utils"], function(Ceci, Utils) {
       return cardClone;
     };
 
+    // This is clearly a hack, we should just be doing new App(...),
+    // but it's too much work to make that right right now.
+    this.clear = function () {
+      var t = this;
+      getUuid(this, function(id){
+        t.id = id;
+        Ceci.clearCards();
+        this.addCard();
+      });
+      Ceci.fireChangeEvent();
+    };
+
+    this.removeCard = function(card){
+      Ceci.removeCard(card, true);
+      if (Ceci.cardCount() === 0){
+        this.addCard();
+      }
+      Ceci.fireChangeEvent();
+    };
+
+
     this.getPortableCardTree = function (card) {
 
       function cleanAttributes (element, params) {
@@ -222,17 +243,6 @@ define(["ceci-cards", "ceci-utils"], function(Ceci, Utils) {
       return appContainerClone;
     };
 
-    // This is clearly a hack, we should just be doing new App(...),
-    // but it's too much work to make that right right now.
-    this.clear = function () {
-      var t = this;
-      getUuid(this, function(id){
-        t.id = id;
-        Ceci.clearCards();
-        this.addCard();
-      });
-    };
-
     var init = function(id){
       var t = this;
       this.id = id;
@@ -269,6 +279,7 @@ define(["ceci-cards", "ceci-utils"], function(Ceci, Utils) {
   App.onload = function(listener) {
     onLoadListeners.push(listener);
   };
+
 
   App.getUuid = getUuid;
 
