@@ -469,11 +469,17 @@ define(function() {
         description = element.querySelector('description'),
         thumbnail = element.querySelector('thumbnail'),
         friendsBlock = element.querySelector('friends'),
-        template = element.querySelector('template');
+        template = element.querySelector('template'),
+        tagsBlock = element.querySelector('tags');
 
     var friends = [];
     if (friendsBlock) {
       friends = friendsBlock.innerHTML.split(',');
+    }
+    
+    var tags = [];
+    if (tagsBlock) {
+      tags = tagsBlock.innerHTML.split(',');
     }
 
     Ceci.registerComponent(name, {
@@ -481,6 +487,7 @@ define(function() {
       description: description,
       thumbnail: thumbnail,
       friends: friends,
+      tags: tags,
       template: template
     });
   };
@@ -499,6 +506,7 @@ define(function() {
       description: registerOptions.description,
       thumbnail: registerOptions.thumbnail,
       friends: registerOptions.friends || [],
+      tags: registerOptions.tags || [],
       template: registerOptions.template
     };
   };
